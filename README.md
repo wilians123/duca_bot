@@ -16,6 +16,18 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Autenticación y roles
+
+La aplicación usa Firebase Auth (correo y contraseña) y Firestore. Habilita el proveedor **Email/Password** en Firebase Authentication, crea la base de datos Firestore y publica [firestore.rules](./firestore.rules).
+
+1. Copia las variables públicas de `.env.example` a `.env` y completa los valores del proyecto Firebase.
+2. Ejecuta `npm run seed:firebase` una vez para crear `will_admin@ducabot.com` y `will_user@ducabot.com`, ambos con contraseña `123456`.
+3. Abre `/login`. El administrador entra a `/dashboard` y puede navegar a `/usuarios` y `/reportes`; el operador entra al flujo original de extracción desde `/dashboard`.
+
+La sesión se cierra automáticamente después del periodo definido en `NEXT_PUBLIC_SESSION_INACTIVITY_MINUTES` (30 minutos por defecto). La consola de logs se controla con `NEXT_PUBLIC_DEV_LOGS=true`.
+
+El script de seed conserva perfiles existentes y nunca elimina documentos. La desactivación de usuarios desde el panel solo cambia `active` a `false`.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
