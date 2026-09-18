@@ -4,7 +4,7 @@ import { ChangeEvent } from "react";
 
 interface TextareaFieldProps {
   label: string;
-  value: string;
+  value: string | number | null | undefined;
   onChange: (value: string) => void;
   maxLength?: number;
   infoTooltip?: string;

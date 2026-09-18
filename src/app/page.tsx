@@ -2,7 +2,8 @@
 
 import { ChangeEvent, useMemo, useState } from "react";
 import { AuditEntry, createAuditEntry, initialAuditEntry } from "@/lib/audit";
-import { DucaPreviewForm, DucaDataState } from "@/components/DucaPreviewForm";
+import { DucaPreviewForm, DucaDataState } from "@/components/operator/DucaPreviewForm";
+import { ActivityConsole } from "@/components/operator/ActivityConsole";
 
 type ApiResponse = {
   ok: boolean;
@@ -55,13 +56,13 @@ function ArchivoTexto({ nombreArchivo, datos }: { nombreArchivo: string; datos: 
 
   if (esTabla && filas.length > 0) {
     return (
-      <div className="max-h-96 overflow-auto bg-white p-3">
-        <table className="min-w-full border-collapse text-left text-xs text-slate-800">
+      <div className="table-wrap max-h-96 overflow-auto">
+        <table>
           <tbody>
             {filas.map((fila, filaIndice) => (
-              <tr key={filaIndice} className={filaIndice === 0 ? "bg-cyan-50 font-semibold" : "odd:bg-slate-50"}>
+              <tr key={filaIndice} className={filaIndice === 0 ? "font-semibold bg-[var(--surface-2)]" : ""}>
                 {fila.map((celda, celdaIndice) => (
-                  <td key={celdaIndice} className="border border-slate-200 px-2 py-1 align-top whitespace-pre-wrap">
+                  <td key={celdaIndice} className="text-xs">
                     {celda}
                   </td>
                 ))}
@@ -73,7 +74,11 @@ function ArchivoTexto({ nombreArchivo, datos }: { nombreArchivo: string; datos: 
     );
   }
 
-  return <pre className="max-h-96 overflow-auto whitespace-pre-wrap bg-slate-950 p-4 text-xs leading-6 text-emerald-200">{texto}</pre>;
+  return (
+    <pre className="mono max-h-96 overflow-auto p-4 text-xs leading-6" style={{ background: "#0F1C33", color: "#9FE8C8" }}>
+      {texto}
+    </pre>
+  );
 }
 
 class ApiRequestError extends Error {
@@ -86,15 +91,74 @@ class ApiRequestError extends Error {
   }
 }
 
+function SparkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-none">
+      <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
+    </svg>
+  );
+}
+function DocIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-none">
+      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+      <polyline points="14 2 14 8 20 8" />
+    </svg>
+  );
+}
+function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-none">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+function WarnIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 flex-none text-[var(--warn)]">
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+}
+function MailIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 flex-none">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+      <polyline points="22,6 12,13 2,6" />
+    </svg>
+  );
+}
+function ClipIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 flex-none">
+      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </svg>
+  );
+}
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 flex-none">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 flex-none">
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([initialAuditEntry]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [jsonPreview, setJsonPreview] = useState("");
   const [parsedData, setParsedData] = useState<DucaDataState | null>(null);
   const [hasDiscrepancies, setHasDiscrepancies] = useState(false);
-  const [discrepancyDetails, setDiscrepancyDetails] = useState<string | null>(
-    null,
-  );
+  const [discrepancyDetails, setDiscrepancyDetails] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showArchivosJson, setShowArchivosJson] = useState(false);
 
@@ -104,15 +168,15 @@ export default function Home() {
     { nombreArchivo: string; datos: unknown }[]
   >([]);
 
-  // Estados para la integración con Gmail
+  // Estados para Gmail
   const [isConnectingGmail, setIsConnectingGmail] = useState(false);
   const [gmailMessages, setGmailMessages] = useState<GmailMessage[]>([]);
   const [selectedMailId, setSelectedMailId] = useState("");
   const [selectedAttachmentIndexes, setSelectedAttachmentIndexes] = useState<
     Record<string, number[]>
   >({});
-  const [correoEnVista, setCorreoEnVista] = useState<string | null>(null);
   const [isLoadingMails, setIsLoadingMails] = useState(false);
+  const [mailFilterQuery, setMailFilterQuery] = useState("");
 
   const canExtract = useMemo(
     () =>
@@ -160,6 +224,9 @@ export default function Home() {
       const payload = await handleApiResponse(response);
       const messages = (payload.data as GmailMessage[]) || [];
       setGmailMessages(messages);
+      if (messages.length > 0 && !selectedMailId) {
+        setSelectedMailId(messages[0].id);
+      }
       setSelectedAttachmentIndexes(
         Object.fromEntries(
           messages.map((message) => [
@@ -257,7 +324,6 @@ export default function Home() {
 
       const extractedData = payload.data as DucaDataState;
       setParsedData(extractedData);
-      setJsonPreview(JSON.stringify(extractedData, null, 2));
       setHasDiscrepancies(payload.hasDiscrepancies || false);
       setDiscrepancyDetails(payload.discrepancyDetails || null);
       setArchivosJson(payload.archivosJson || []);
@@ -297,344 +363,514 @@ export default function Home() {
 
   const handleDataChange = (newData: DucaDataState) => {
     setParsedData(newData);
-    setJsonPreview(JSON.stringify(newData, null, 2));
   };
 
+  const step1Done = gmailMessages.length > 0;
+  const step2Done = Boolean(selectedMailId || pdfFile);
+  const step3Done = Boolean(parsedData);
+  const step4Done = Boolean(parsedData && !hasDiscrepancies);
+  const step5Done = isAuthenticating;
+
+  const currentStep = !step1Done ? 1 : !step2Done ? 2 : !step3Done ? 3 : !step4Done ? 4 : 5;
+  const progressPercent = ((currentStep - 1) / 4) * 100;
+
+  const selectedMail = gmailMessages.find((m) => m.id === selectedMailId);
+  const selectedCount = selectedMailId
+    ? (selectedAttachmentIndexes[selectedMailId] || []).length
+    : 0;
+
+  const filteredMessages = gmailMessages.filter((msg) => {
+    if (!mailFilterQuery) return true;
+    const q = mailFilterQuery.toLowerCase();
+    return (
+      msg.subject.toLowerCase().includes(q) ||
+      msg.from.toLowerCase().includes(q) ||
+      msg.cuerpo.toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-950">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[340px_1fr]">
-        <aside className="border-b border-slate-200 bg-slate-950 p-6 text-white lg:border-b-0 lg:border-r">
-          <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
-              DUCA-T RPA
+    <main className="view">
+      {/* Encabezado */}
+      <div className="page-head">
+        <div>
+          <h1>Trámite nuevo</h1>
+          <p>
+            Conecta Gmail, elige el correo con los documentos del embarque y extrae los
+            datos para armar la DUCA-T con IA.
+          </p>
+        </div>
+        <div className="head-actions">
+          <button
+            type="button"
+            onClick={fetchGmailMessages}
+            disabled={isLoadingMails}
+            className="btn btn-ghost"
+          >
+            {isLoadingMails ? "Cargando..." : "Actualizar bandeja"}
+          </button>
+          <button
+            type="button"
+            onClick={connectGmail}
+            disabled={isConnectingGmail}
+            className="btn btn-primary"
+          >
+            <MailIcon />
+            <span>{isConnectingGmail ? "Conectando..." : "Conectar Gmail"}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* FLOWBAR */}
+      <div className="flowbar" aria-label="Progreso del trámite">
+        <div className="flow-track">
+          <div className={`flow-step ${step1Done ? "is-done" : currentStep === 1 ? "is-current" : ""}`}>
+            <span className="flow-num">{step1Done ? "✓" : "1"}</span>
+            <div>
+              <b>1. Conectar Gmail</b>
+              <small>{step1Done ? "Bandeja activa" : "Conecta tu cuenta"}</small>
+            </div>
+          </div>
+          <div className={`flow-step ${step2Done ? "is-done" : currentStep === 2 ? "is-current" : !step1Done ? "is-locked" : ""}`}>
+            <span className="flow-num">{step2Done ? "✓" : "2"}</span>
+            <div>
+              <b>2. Elegir correo</b>
+              <small>{selectedMail ? "1 conversación" : "Marca los adjuntos"}</small>
+            </div>
+          </div>
+          <div className={`flow-step ${step3Done ? "is-done" : currentStep === 3 ? "is-current" : !step2Done ? "is-locked" : ""}`}>
+            <span className="flow-num">{step3Done ? "✓" : "3"}</span>
+            <div>
+              <b>3. Extraer datos</b>
+              <small>{parsedData ? "Datos listos" : "Lectura con IA"}</small>
+            </div>
+          </div>
+          <div className={`flow-step ${step4Done ? "is-done" : currentStep === 4 ? "is-current" : !step3Done ? "is-locked" : ""}`}>
+            <span className="flow-num">{step4Done ? "✓" : "4"}</span>
+            <div>
+              <b>4. Revisar DUCA T</b>
+              <small>{hasDiscrepancies ? "Revisar datos" : "9 pasos completos"}</small>
+            </div>
+          </div>
+          <div className={`flow-step ${step5Done ? "is-done" : currentStep === 5 ? "is-current" : !step3Done ? "is-locked" : ""}`}>
+            <span className="flow-num">{step5Done ? "✓" : "5"}</span>
+            <div>
+              <b>5. Enviar a SIECA</b>
+              <small>Firma y radicación</small>
+            </div>
+          </div>
+        </div>
+        <div className="flow-progress">
+          <i style={{ width: `${progressPercent}%` }} />
+        </div>
+      </div>
+
+      {/* BANDEJA TIPO GMAIL */}
+      {gmailMessages.length === 0 ? (
+        <section className="card p-8 text-center" style={{ minHeight: 280, display: "grid", placeContent: "center", gap: "1rem" }}>
+          <div className="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "var(--primary-soft)", color: "var(--primary)" }}>
+            <MailIcon />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold">Conecta tu bandeja de entrada</h2>
+            <p className="muted mt-1 max-w-md mx-auto text-sm">
+              Conecta tu correo institucional de Gmail para recibir y procesar automáticamente los
+              documentos de embarque de los clientes.
             </p>
-            <h1 className="mt-2 text-2xl font-semibold">
-              Log de Auditoria del Sistema
-            </h1>
+          </div>
+          <div className="flex gap-3 justify-center mt-2">
+            <button type="button" onClick={connectGmail} className="btn btn-primary">
+              <MailIcon />
+              <span>Conectar cuenta de Gmail</span>
+            </button>
+            <button type="button" onClick={fetchGmailMessages} disabled={isLoadingMails} className="btn btn-ghost">
+              {isLoadingMails ? "Cargando..." : "Cargar correos"}
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="mailbox">
+          <div className="mail-toolbar">
+            <div className="search">
+              <SearchIcon />
+              <input
+                className="input"
+                placeholder="Buscar por cliente, asunto o contenedor..."
+                value={mailFilterQuery}
+                onChange={(e) => setMailFilterQuery(e.target.value)}
+              />
+            </div>
+            <div className="seg">
+              <button type="button" aria-pressed="true">Todos</button>
+              <button type="button" aria-pressed="false">Con adjuntos</button>
+            </div>
+            <span className="muted text-xs ml-auto">
+              {filteredMessages.length} conversación{filteredMessages.length !== 1 ? "es" : ""}
+            </span>
           </div>
 
-          <div className="h-[42vh] overflow-y-auto rounded-lg border border-white/10 bg-white/5 p-3 lg:h-[calc(100vh-132px)]">
-            <div className="space-y-3">
-              {auditLog.map((entry) => (
-                <article
-                  key={entry.id}
-                  className="rounded-md border border-white/10 bg-slate-900 p-3 shadow-sm"
-                >
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <span
-                      className={`text-xs font-bold uppercase ${
-                        entry.level === "success"
-                          ? "text-emerald-300"
-                          : entry.level === "error"
-                            ? "text-rose-300"
-                            : "text-cyan-300"
-                      }`}
-                    >
-                      {entry.level}
-                    </span>
-                    <time className="font-mono text-xs text-slate-400">
-                      {entry.time}
-                    </time>
-                  </div>
-                  <p className="text-sm leading-6 text-slate-100">
-                    {entry.message}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        <section className="px-5 py-8 sm:px-8 lg:px-10">
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-                  Automatizacion de declaraciones aduaneras DUCA-T
-                </h2>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={connectGmail}
-                  disabled={isConnectingGmail}
-                  className="h-11 rounded-md bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-                >
-                  {isConnectingGmail ? "Conectando..." : "Conectar Gmail"}
-                </button>
-              </div>
-            </div>
-
-            <div className="grid gap-5">
-              {/* TARJETA 1: AUTENTICACIÓN LOGIN SIECA */}
-              <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="mt-1 text-xl font-semibold">
-                      Autenticacion Login SIECA
-                    </h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      Ejecutar BOT con Playwright.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={authenticate}
-                    disabled={isAuthenticating}
-                    className="h-11 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-                  >
-                    {isAuthenticating
-                      ? "Esperando login..."
-                      : "Abrir Navegador para Login"}
-                  </button>
+          <div className="mail-panes">
+            <div className="mail-list">
+              {filteredMessages.length === 0 ? (
+                <div className="empty">
+                  <b>Sin resultados</b>
+                  <p>Prueba con otro término de búsqueda.</p>
                 </div>
-              </section>
-
-              {/* TARJETA 2: EXTRACCIÓN Y LIMPIEZA IA */}
-              <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="mb-4">
-                  <h3 className="mt-1 text-xl font-semibold">
-                    Extraccion y Limpieza IA
-                  </h3>
-                </div>
-
-                <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-                  <div className="flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={fetchGmailMessages}
-                      disabled={isLoadingMails}
-                      className="h-11 w-full rounded-md bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              ) : (
+                filteredMessages.map((msg) => {
+                  const isSelected = selectedMailId === msg.id;
+                  const count = msg.archivosAdjuntos.length;
+                  return (
+                    <article
+                      key={msg.id}
+                      className={`thread ${isSelected ? "is-open" : ""}`}
+                      onClick={() => {
+                        setSelectedMailId(msg.id);
+                        setPdfFile(null);
+                        setSelectedAttachmentIndexes((prev) =>
+                          prev[msg.id]
+                            ? prev
+                            : {
+                                ...prev,
+                                [msg.id]: msg.archivosAdjuntos.map((_, i) => i),
+                              },
+                        );
+                      }}
+                      style={{ cursor: "pointer" }}
                     >
-                      {isLoadingMails ? "Cargando..." : "Listar Correos"}
-                    </button>
-                    {gmailMessages.length > 0 && (
-                      <div className="max-h-80 space-y-2 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-2">
-                        {gmailMessages.map((msg) => (
-                          <article
-                            key={msg.id}
-                            className={`rounded-md border p-3 ${selectedMailId === msg.id ? "border-cyan-600 bg-cyan-50" : "border-slate-200 bg-white"}`}
-                          >
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedMailId(msg.id);
-                                  setPdfFile(null);
-                                  setSelectedAttachmentIndexes((previous) =>
-                                    previous[msg.id]
-                                      ? previous
-                                      : {
-                                          ...previous,
-                                          [msg.id]: msg.archivosAdjuntos.map(
-                                            (_, index) => index,
-                                          ),
-                                        },
-                                  );
-                                }}
-                                className="min-w-0 text-left"
-                              >
-                                <p className="truncate text-sm font-semibold text-slate-900">
-                                  {msg.subject}
-                                </p>
-                                <p className="truncate text-xs text-slate-600">
-                                  [{new Date(msg.date).toLocaleDateString()}]{" "}
-                                  {msg.from}
-                                </p>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setCorreoEnVista(
-                                    correoEnVista === msg.id ? null : msg.id,
-                                  )
-                                }
-                                className="shrink-0 rounded-md bg-slate-800 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-950"
-                              >
-                                ver_correo
-                              </button>
-                            </div>
-                            {selectedMailId === msg.id && (
-                              <div className="mt-3 border-t border-slate-200 pt-3">
-                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-700">
-                                  Archivos adjuntos ({msg.archivosAdjuntos.length})
-                                </p>
-                                <ul className="space-y-1 text-xs text-slate-700">
-                                  {msg.archivosAdjuntos.length > 0 ? (
-                                    msg.archivosAdjuntos.map((nombre, index) => (
-                                      <li
-                                        key={`${nombre}-${index}`}
-                                        className="rounded bg-slate-100 px-2 py-1 font-mono"
-                                      >
-                                        <label className="flex items-center gap-2">
-                                          <input
-                                            type="checkbox"
-                                            checked={selectedAttachmentIndexes[msg.id]?.includes(index) ?? false}
-                                            onChange={(event) =>
-                                              setSelectedAttachmentIndexes((previous) => {
-                                                const selected = previous[msg.id] || [];
-                                                return {
-                                                  ...previous,
-                                                  [msg.id]: event.target.checked
-                                                    ? [...selected, index]
-                                                    : selected.filter((selectedIndex) => selectedIndex !== index),
-                                                };
-                                              })
-                                            }
-                                            className="rounded border-slate-300 text-cyan-700 focus:ring-cyan-600"
-                                          />
-                                          <span>{nombre}</span>
-                                        </label>
-                                      </li>
-                                    ))
-                                  ) : (
-                                    <li>No hay adjuntos.</li>
-                                  )}
-                                </ul>
-                              </div>
-                            )}
-                            {correoEnVista === msg.id && (
-                              <div className="mt-3 border-t border-slate-200 pt-3">
-                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-700">
-                                  Cuerpo del correo
-                                </p>
-                                <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-md bg-slate-950 p-3 text-xs leading-5 text-slate-100">
-                                  {msg.cuerpo ||
-                                    "El correo no contiene texto plano."}
-                                </pre>
-                              </div>
-                            )}
-                          </article>
-                        ))}
+                      <span
+                        className="thread-av"
+                        style={{
+                          background: isSelected ? "var(--primary)" : "var(--ink-2)",
+                        }}
+                      >
+                        {msg.from.slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="thread-main">
+                        <div className="thread-top">
+                          <b>{msg.from.split("<")[0].trim() || msg.from}</b>
+                          {count > 0 && <span className="thread-count">[{count}]</span>}
+                          <span className="thread-time">
+                            {new Date(msg.date).toLocaleDateString("es-GT", {
+                              month: "numeric",
+                              day: "numeric",
+                            })}
+                          </span>
+                        </div>
+                        <span className="thread-subject">{msg.subject}</span>
+                        <span className="thread-snippet">
+                          {msg.cuerpo ? msg.cuerpo.slice(0, 80) + "…" : "Sin contenido de texto"}
+                        </span>
+                        {count > 0 && (
+                          <div className="thread-meta">
+                            <span className="clip">
+                              <ClipIcon />
+                              <span>{count} archivo{count !== 1 ? "s" : ""}</span>
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-slate-700">
-                      Archivos locales (Alternativo)
-                    </span>
-                    <input
-                      type="file"
-                      accept="application/pdf,.pdf,.xls,.xlsx"
-                      onChange={handleFileChange}
-                      className="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-cyan-700 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-cyan-800"
-                    />
-                  </label>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={extractData}
-                      disabled={!canExtract}
-                      className="h-11 rounded-md bg-cyan-700 px-4 text-sm font-semibold text-white transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-                    >
-                      {isExtracting ? "Extrayendo..." : "Extraer Datos"}
-                    </button>
-                    {parsedData && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setShowPreview(!showPreview)}
-                          className="h-11 rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white transition hover:bg-indigo-700"
-                        >
-                          Previsualización
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={showArchivosJson}
-                          onClick={() =>
-                            setShowArchivosJson((visible) => !visible)
-                          }
-                          className={`h-11 rounded-md px-4 text-sm font-semibold text-white transition ${showArchivosJson ? "bg-slate-950" : "bg-slate-700 hover:bg-slate-800"}`}
-                        >
-                          archivos_json
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                    </article>
+                  );
+                })
+              )}
+            </div>
 
-                {showArchivosJson && (
-                  <section className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <div className="mb-4">
-                      <p className="text-sm font-semibold text-cyan-700">
-                        Archivos JSON individuales
-                      </p>
-                      <h3 className="mt-1 text-lg font-semibold text-slate-950">
-                        Extracción asociada por nombre original
-                      </h3>
-                    </div>
-                    <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-2">
-                      {archivosJson.length > 0 ? (
-                        archivosJson.map((archivo, indice) => (
-                          <article
-                            key={`${archivo.nombreArchivo}-${indice}`}
-                            className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm"
-                          >
-                            <header className="border-b border-slate-200 bg-slate-100 px-4 py-3 font-mono text-sm font-semibold text-slate-900">
-                              {archivo.nombreArchivo}
-                            </header>
-                            <ArchivoTexto nombreArchivo={archivo.nombreArchivo} datos={archivo.datos} />
-                          </article>
-                        ))
-                      ) : (
-                        <p className="rounded-md border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">
-                          No hay archivos JSON individuales disponibles para
-                          esta extracción.
-                        </p>
+            <div className="mail-reader">
+              {selectedMail ? (
+                <>
+                  <header className="reader-head">
+                    <h2>{selectedMail.subject}</h2>
+                    <div className="reader-sub">
+                      <span className="tag tag-neutral">De: {selectedMail.from}</span>
+                      <span className="tag tag-neutral">
+                        Fecha: {new Date(selectedMail.date).toLocaleString("es-GT")}
+                      </span>
+                      {selectedMail.archivosAdjuntos.length > 0 && (
+                        <span className="tag tag-info">
+                          {selectedCount} de {selectedMail.archivosAdjuntos.length} adjuntos elegidos
+                        </span>
                       )}
                     </div>
-                  </section>
-                )}
+                  </header>
 
-                <label className="mt-4 block">
-                  <span className="mb-2 block text-sm font-medium text-slate-700">
-                    JSON resultante
-                  </span>
-                  <textarea
-                    readOnly
-                    value={jsonPreview}
-                    placeholder="El JSON limpio aparecera aqui despues de procesar el correo o PDF."
-                    className="min-h-72 w-full resize-y rounded-md border border-slate-300 bg-slate-950 p-4 font-mono text-xs leading-6 text-emerald-200 outline-none"
-                  />
-                </label>
-              </section>
+                  <div className="msg-list">
+                    <article className="msg">
+                      <header className="msg-head">
+                        <span className="msg-av" style={{ background: "var(--primary)" }}>
+                          {selectedMail.from.slice(0, 2).toUpperCase()}
+                        </span>
+                        <span className="msg-who">
+                          <b>{selectedMail.from}</b>
+                          <small>{selectedMail.subject}</small>
+                        </span>
+                        <span className="msg-when">
+                          {new Date(selectedMail.date).toLocaleDateString()}
+                        </span>
+                      </header>
 
-              {/* TARJETA 2.5: PREVISUALIZAR DUCA T */}
-              {showPreview && parsedData && (
-                <section className="rounded-lg border border-indigo-200 bg-white p-5 shadow-sm">
-                  <div className="mb-6">
-                    <p className="text-sm font-semibold text-indigo-700">
-                      Previsualización Editable
-                    </p>
-                    <h3 className="mt-1 text-xl font-semibold">
-                      Previsualizar DUCA T
-                    </h3>
+                      <div className="msg-body">
+                        {selectedMail.cuerpo || "Este correo no contiene texto plano."}
+                      </div>
+
+                      {selectedMail.archivosAdjuntos.length > 0 && (
+                        <div className="msg-files">
+                          {selectedMail.archivosAdjuntos.map((nombre, index) => {
+                            const isChecked =
+                              selectedAttachmentIndexes[selectedMail.id]?.includes(index) ?? false;
+                            const ext = nombre.split(".").pop()?.toLowerCase() || "";
+                            const isPdf = ext === "pdf";
+                            const isXls = ext === "xls" || ext === "xlsx";
+                            return (
+                              <label key={`${nombre}-${index}`} className="filechip">
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    setSelectedAttachmentIndexes((prev) => {
+                                      const current = prev[selectedMail.id] || [];
+                                      return {
+                                        ...prev,
+                                        [selectedMail.id]: checked
+                                          ? [...current, index]
+                                          : current.filter((i) => i !== index),
+                                      };
+                                    });
+                                  }}
+                                  style={{ accentColor: "var(--primary)", width: 16, height: 16 }}
+                                />
+                                <span className={`ftype ${isPdf ? "ft-pdf" : isXls ? "ft-xls" : "ft-doc"}`}>
+                                  {ext.slice(0, 3).toUpperCase()}
+                                </span>
+                                <span style={{ minWidth: 0 }}>
+                                  <span className="fname" style={{ display: "block" }}>
+                                    {nombre}
+                                  </span>
+                                  <span className="fsize">Adjunto de embarque</span>
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </article>
                   </div>
-
-                  <DucaPreviewForm
-                    data={parsedData}
-                    onChange={handleDataChange}
-                    hasDiscrepancies={hasDiscrepancies}
-                    discrepancyDetails={discrepancyDetails}
-                  />
-
-                  {hasDiscrepancies && (
-                    <div className="mt-4">
-                      <button
-                        onClick={() => setHasDiscrepancies(false)}
-                        className="h-11 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700"
-                      >
-                        Aprobar y Resolver Discrepancias
-                      </button>
-                    </div>
-                  )}
-                </section>
+                </>
+              ) : (
+                <div className="empty">
+                  <MailIcon />
+                  <b>Ningún correo seleccionado</b>
+                  <p>Selecciona un correo de la lista izquierda para revisar sus adjuntos.</p>
+                </div>
               )}
-
             </div>
           </div>
         </section>
-      </div>
+      )}
+
+      {/* TARJETA EXTRAER DATOS */}
+      <section className="card mt-5">
+        <div className="card-head">
+          <div>
+            <h2>Extraer los datos</h2>
+            <p className="muted text-sm mt-0.5">
+              La IA lee los archivos marcados y arma la DUCA-T. También puedes subir un archivo desde tu
+              computadora.
+            </p>
+          </div>
+          {parsedData && (
+            <span className="tag tag-ok">
+              <span className="dot" /> Datos listos
+            </span>
+          )}
+        </div>
+
+        <div className="card-body">
+          <div className="grid-auto items-end">
+            <label className="field">
+              <span>Archivos elegidos del correo</span>
+              <input
+                className="input"
+                readOnly
+                value={
+                  selectedCount > 0
+                    ? `${selectedCount} archivo${selectedCount !== 1 ? "s" : ""} de «${selectedMail?.subject?.slice(0, 32) || ""}…»`
+                    : "Todavía no has marcado archivos"
+                }
+              />
+            </label>
+
+            <label className="field">
+              <span>O sube un archivo (PDF, XLS o XLSX)</span>
+              <input
+                className="input"
+                type="file"
+                accept="application/pdf,.pdf,.xls,.xlsx"
+                onChange={handleFileChange}
+                style={{ padding: ".35rem" }}
+              />
+            </label>
+
+            <button
+              type="button"
+              onClick={extractData}
+              disabled={!canExtract || isExtracting}
+              className="btn btn-primary"
+            >
+              <SparkIcon />
+              <span>
+                {isExtracting
+                  ? "Extrayendo..."
+                  : parsedData
+                    ? "Volver a extraer"
+                    : "Extraer datos"}
+              </span>
+            </button>
+          </div>
+
+          {parsedData && (
+            <div className="mt-5 space-y-4">
+              {hasDiscrepancies && (
+                <div className="alert alert-warn">
+                  <WarnIcon />
+                  <div className="flex-1">
+                    <b>Discrepancia detectada entre correo y adjuntos.</b>
+                    <p className="text-xs sm:text-sm mt-0.5">{discrepancyDetails}</p>
+                    <button
+                      type="button"
+                      onClick={() => setHasDiscrepancies(false)}
+                      className="btn btn-sm btn-ghost mt-2"
+                    >
+                      Aprobar y resolver discrepancias
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPreview((prev) => !prev)}
+                  className="btn btn-primary"
+                >
+                  <DocIcon />
+                  <span>{showPreview ? "Ocultar DUCA T" : "Revisar DUCA T"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowArchivosJson(true)}
+                  className="btn btn-ghost"
+                >
+                  Ver archivos leídos ({archivosJson.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={authenticate}
+                  disabled={isAuthenticating}
+                  className="btn btn-go ml-auto"
+                >
+                  <ShieldIcon />
+                  <span>
+                    {isAuthenticating ? "Autenticando..." : "Autenticar en SIECA y enviar"}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* PREVISUALIZACIÓN DUCA T */}
+      {showPreview && parsedData && (
+        <section className="card mt-5">
+          <div className="card-head">
+            <div>
+              <h2>Revisión de la Declaración DUCA-T</h2>
+              <p className="muted text-xs mt-0.5">
+                Valida cada uno de los 9 pasos antes de proceder con el envío automatizado a SIECA.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              className="btn btn-sm btn-ghost"
+            >
+              Cerrar revisión
+            </button>
+          </div>
+          <div className="card-body">
+            <DucaPreviewForm
+              key={JSON.stringify(parsedData)}
+              data={parsedData}
+              onChange={handleDataChange}
+              hasDiscrepancies={hasDiscrepancies}
+              discrepancyDetails={discrepancyDetails}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* MODAL ARCHIVOS LEÍDOS */}
+      {showArchivosJson && (
+        <div className="modal" onClick={() => setShowArchivosJson(false)}>
+          <div
+            className="modal-box lg"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <header className="modal-head">
+              <div className="flex-1">
+                <h2>Archivos leídos por el extractor</h2>
+                <p>Datos individuales procesados por la IA para este embarque.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowArchivosJson(false)}
+                className="btn btn-quiet btn-sm"
+              >
+                <CloseIcon />
+              </button>
+            </header>
+
+            <div className="modal-body space-y-4">
+              {archivosJson.length > 0 ? (
+                archivosJson.map((archivo, indice) => (
+                  <article
+                    key={`${archivo.nombreArchivo}-${indice}`}
+                    className="border border-[var(--line)] rounded-[var(--r-md)] overflow-hidden"
+                  >
+                    <header className="px-4 py-2.5 bg-[var(--surface-2)] border-b border-[var(--line-soft)] font-mono text-xs font-semibold">
+                      {archivo.nombreArchivo}
+                    </header>
+                    <ArchivoTexto nombreArchivo={archivo.nombreArchivo} datos={archivo.datos} />
+                  </article>
+                ))
+              ) : (
+                <p className="muted text-center py-8">
+                  No hay archivos individuales para mostrar.
+                </p>
+              )}
+            </div>
+
+            <footer className="modal-foot">
+              <button
+                type="button"
+                onClick={() => setShowArchivosJson(false)}
+                className="btn btn-ghost"
+              >
+                Cerrar
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
+
+      {/* CONSOLA FLOTANTE */}
+      <ActivityConsole logs={auditLog} />
     </main>
   );
 }

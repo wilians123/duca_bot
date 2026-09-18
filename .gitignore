@@ -41,3 +41,11 @@ tmp/*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# vscode
+.vscode/
+
+# archivos
+agents.md
+ducas-bot-ui.html
+

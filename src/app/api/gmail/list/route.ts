@@ -4,11 +4,18 @@ import fs from "fs";
 import path from "path";
 import { guardarCorreo } from "@/lib/firebase-correo";
 
+type GmailPart = {
+  mimeType?: string | null;
+  filename?: string | null;
+  body?: { data?: string | null; attachmentId?: string | null } | null;
+  parts?: GmailPart[] | null;
+};
+
 function decodificarBase64(data?: string | null) {
   return data ? Buffer.from(data, "base64").toString("utf-8") : "";
 }
 
-function extraerCuerpoTexto(parte: any): string {
+function extraerCuerpoTexto(parte: GmailPart): string {
   let texto = "";
   if (parte.mimeType === "text/plain" && parte.body?.data) {
     texto += `${decodificarBase64(parte.body.data)}\n`;
@@ -19,7 +26,7 @@ function extraerCuerpoTexto(parte: any): string {
   return texto;
 }
 
-function extraerNombresAdjuntos(parte: any): string[] {
+function extraerNombresAdjuntos(parte: GmailPart): string[] {
   const nombres =
     parte.filename && parte.body?.attachmentId ? [String(parte.filename)] : [];
   return nombres.concat((parte.parts || []).flatMap(extraerNombresAdjuntos));

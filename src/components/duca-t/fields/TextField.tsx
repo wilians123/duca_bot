@@ -4,7 +4,7 @@ import { ChangeEvent } from "react";
 
 interface TextFieldProps {
   label: string;
-  value: string;
+  value: string | number | null | undefined;
   onChange: (value: string) => void;
   required?: boolean;
   placeholder?: string;

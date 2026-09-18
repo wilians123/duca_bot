@@ -3,18 +3,286 @@
 import { collection, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../../../firebase/client";
-import { ChartIcon, DocumentIcon } from "@/components/auth/icons";
 
-type ProcessedCase = { id: string; userId?: string; reference?: string; status?: string; tokens?: number; createdAt?: string };
+type ProcessedCase = {
+  id: string;
+  userId?: string;
+  reference?: string;
+  cliente?: string;
+  ruta?: string;
+  status?: string;
+  tokens?: number;
+  createdAt?: string;
+};
+
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={16} height={16}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={16} height={16}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  );
+}
 
 export function ReportsPage() {
   const [cases, setCases] = useState<ProcessedCase[]>([]);
   const [reportDay, setReportDay] = useState(String(new Date().getDate()));
   const [notice, setNotice] = useState("");
-  useEffect(() => onSnapshot(collection(db, "tramites"), (snapshot) => setCases(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as ProcessedCase))), []);
 
-  const periodRows = useMemo(() => { const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime(); const end = new Date(now.getFullYear(), now.getMonth(), Number(reportDay), 23, 59, 59).getTime(); return cases.filter((item) => { const created = item.createdAt ? new Date(item.createdAt).getTime() : 0; return created >= start && created <= end; }); }, [cases, reportDay]);
-  const generateReport = () => { const headers = ["Referencia", "Usuario", "Estado", "Tokens", "Fecha"]; const csv = [headers, ...periodRows.map((item) => [item.reference || item.id, item.userId || "—", item.status || "Pendiente", String(item.tokens || 0), item.createdAt || ""])].map((row) => row.map((value) => `"${value.replaceAll('"', '""')}"`).join(",")).join("\n"); const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); const link = document.createElement("a"); link.href = url; link.download = `reporte-ducas-${new Date().toISOString().slice(0, 7)}-${reportDay}.csv`; link.click(); URL.revokeObjectURL(url); setNotice(`Reporte generado del día 01 al ${reportDay} con ${periodRows.length} registros.`); };
+  useEffect(
+    () =>
+      onSnapshot(collection(db, "tramites"), (snapshot) =>
+        setCases(
+          snapshot.docs.map(
+            (item) => ({ id: item.id, ...item.data() }) as ProcessedCase,
+          ),
+        ),
+      ),
+    [],
+  );
 
-  return <main className="min-h-screen bg-[#f5f8fc] px-4 py-7 sm:px-7 lg:px-10 lg:py-9"><div className="mx-auto max-w-[1400px]"><header className="mb-8"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#147b94]">Administración</p><h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#10233f] sm:text-4xl">Reportes</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Genera un archivo mensual con el rango acumulado desde el día 01 hasta el corte que selecciones.</p></header><section className="grid gap-6 lg:grid-cols-[1fr_0.7fr]"><article className="rounded-2xl border border-[#dbe5ef] bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><ChartIcon className="h-5 w-5" /></span><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600">Exportación mensual</p><h2 className="mt-1 text-xl font-semibold text-[#10233f]">Construir reporte</h2></div></div><div className="mt-6 grid gap-4 sm:grid-cols-[180px_1fr] sm:items-end"><label className="block"><span className="mb-1.5 block text-xs font-semibold text-slate-600">Día de corte</span><input type="number" min="1" max="31" value={reportDay} onChange={(event) => setReportDay(event.target.value)} className="h-11 w-full rounded-lg border-[#cbd8e5] text-sm focus:border-[#6366f1] focus:ring-[#6366f1]" /></label><button type="button" onClick={generateReport} className="flex h-11 items-center justify-center gap-2 rounded-lg bg-[#10233f] px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#183557]"><DocumentIcon className="h-4 w-4" /> Generar reporte mensual</button></div>{notice && <p role="status" className="mt-5 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{notice}</p>}</article><article className="rounded-2xl border border-[#dbe5ef] bg-[#10233f] p-6 text-white shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8edce7]">Rango activo</p><p className="mt-3 text-3xl font-semibold">01 — {reportDay}</p><p className="mt-2 text-sm leading-6 text-slate-300">Del primer día del mes hasta el corte seleccionado.</p><div className="mt-6 border-t border-white/10 pt-4"><p className="text-xs text-slate-400">Trámites incluidos</p><p className="mt-1 text-2xl font-semibold text-[#8edce7]">{periodRows.length}</p></div></article></section><section className="mt-6 overflow-hidden rounded-2xl border border-[#dbe5ef] bg-white shadow-sm"><div className="border-b border-[#e8eff5] px-5 py-4"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#147b94]">Vista previa</p><h2 className="mt-1 text-lg font-semibold text-[#10233f]">Registros del rango seleccionado</h2></div><div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="bg-[#f8fbfd] text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-3 font-semibold">Referencia</th><th className="px-5 py-3 font-semibold">Usuario</th><th className="px-5 py-3 font-semibold">Estado</th><th className="px-5 py-3 font-semibold">Fecha</th></tr></thead><tbody className="divide-y divide-[#edf2f6]">{periodRows.length === 0 ? <tr><td colSpan={4} className="px-5 py-9 text-center text-sm text-slate-500">No hay trámites en este rango.</td></tr> : periodRows.map((item) => <tr key={item.id} className="transition-colors hover:bg-[#fbfdfe]"><td className="px-5 py-4 font-medium text-[#10233f]">{item.reference || item.id}</td><td className="px-5 py-4 text-slate-600">{item.userId || "—"}</td><td className="px-5 py-4 text-slate-600">{item.status || "Pendiente"}</td><td className="px-5 py-4 text-slate-600">{item.createdAt ? new Date(item.createdAt).toLocaleString("es-GT") : "—"}</td></tr>)}</tbody></table></div></section></div></main>;
+  const periodRows = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const end = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      Number(reportDay),
+      23,
+      59,
+      59,
+    ).getTime();
+    return cases.filter((item) => {
+      const created = item.createdAt ? new Date(item.createdAt).getTime() : 0;
+      return created >= start && created <= end;
+    });
+  }, [cases, reportDay]);
+
+  const generateReport = () => {
+    const headers = ["Referencia", "Usuario", "Estado", "Tokens", "Fecha"];
+    const csv = [
+      headers,
+      ...periodRows.map((item) => [
+        item.reference || item.id,
+        item.userId || "—",
+        item.status || "Pendiente",
+        String(item.tokens || 0),
+        item.createdAt || "",
+      ]),
+    ]
+      .map((row) => row.map((value) => `"${value.replaceAll('"', '""')}"`).join(","))
+      .join("\n");
+
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `reporte-ducas-${new Date().toISOString().slice(0, 7)}-${reportDay}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setNotice(
+      `Reporte generado: ${periodRows.length} registros del 01 al ${reportDay} de este mes.`,
+    );
+  };
+
+  const statusBadge = (st?: string) => {
+    if (st === "Completado")
+      return (
+        <span className="tag tag-ok">
+          <span className="dot" /> Completado
+        </span>
+      );
+    if (st === "Error")
+      return (
+        <span className="tag tag-bad">
+          <span className="dot" /> Error
+        </span>
+      );
+    return (
+      <span className="tag tag-warn">
+        <span className="dot" /> Pendiente
+      </span>
+    );
+  };
+
+  return (
+    <main className="view">
+      <div className="page-head">
+        <div>
+          <h1>Reportes</h1>
+          <p>
+            Arma un archivo con los trámites del mes, desde el día 01 hasta el corte que
+            elijas.
+          </p>
+        </div>
+      </div>
+
+      {notice && (
+        <div className="alert alert-info mb-4">
+          <InfoIcon />
+          <span>{notice}</span>
+        </div>
+      )}
+
+      <div className="grid-2">
+        {/* Construir reporte */}
+        <section className="card">
+          <div className="card-head">
+            <h2>Construir reporte</h2>
+          </div>
+          <div className="card-body">
+            <div className="filters">
+              <label className="field">
+                <span>Día de corte</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={31}
+                  className="input"
+                  value={reportDay}
+                  onChange={(e) => setReportDay(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={generateReport}
+                className="btn btn-primary"
+                style={{ alignSelf: "flex-end" }}
+              >
+                <DownloadIcon />
+                <span>Generar reporte</span>
+              </button>
+            </div>
+
+            <div className="alert alert-info mt-4">
+              <InfoIcon />
+              <span>
+                El archivo sale en CSV con referencia, operador, estado, tokens consumidos
+                y fecha de cada trámite.
+              </span>
+            </div>
+
+            <div className="chart mt-5">
+              {[32, 41, 28, 44, 52, 38, 47, periodRows.length || 54].map((v, i) => (
+                <div key={i} className="col">
+                  <i style={{ height: `${(v / 54) * 100}%` }} title={`${v} trámites`} />
+                  <span>
+                    {["feb", "mar", "abr", "may", "jun", "jul", "ago", "sep"][i]}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="muted text-xs text-center mt-2">
+              Trámites completados por mes
+            </p>
+          </div>
+        </section>
+
+        {/* Reportes recientes */}
+        <section className="card" style={{ alignSelf: "start" }}>
+          <div className="card-head">
+            <h2>Reportes recientes</h2>
+          </div>
+          <div className="card-body space-y-2.5">
+            {[
+              ["reporte-ducas-2026-08.csv", "54 registros", "01 sep 2026"],
+              ["reporte-ducas-2026-07.csv", "47 registros", "01 ago 2026"],
+              ["reporte-ducas-2026-06.csv", "38 registros", "01 jul 2026"],
+            ].map(([n, r, f]) => (
+              <div
+                key={n}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: ".7rem",
+                  padding: ".65rem .75rem",
+                  border: "1px solid var(--line-soft)",
+                  borderRadius: "var(--r-md)",
+                }}
+              >
+                <span className="ftype ft-xls">CSV</span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <b
+                    className="mono block text-xs"
+                    style={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {n}
+                  </b>
+                  <small className="muted text-xs">
+                    {r} · {f}
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  onClick={generateReport}
+                  className="btn btn-quiet btn-sm"
+                  title={`Descargar ${n}`}
+                >
+                  <DownloadIcon />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Detalle del periodo */}
+      <section className="card mt-5">
+        <div className="card-head">
+          <h2>Detalle del periodo</h2>
+          <span className="muted text-xs">01 al {reportDay} de este mes</span>
+        </div>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Referencia</th>
+                <th>Usuario</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {periodRows.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-8 muted">
+                    No hay trámites en el periodo seleccionado.
+                  </td>
+                </tr>
+              ) : (
+                periodRows.map((item) => (
+                  <tr key={item.id}>
+                    <td className="mono font-semibold text-xs text-[var(--primary-ink)]">
+                      {item.reference || item.id}
+                    </td>
+                    <td>{item.userId || "—"}</td>
+                    <td>{statusBadge(item.status)}</td>
+                    <td className="muted whitespace-nowrap text-xs">
+                      {item.createdAt
+                        ? new Date(item.createdAt).toLocaleString("es-GT")
+                        : "—"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  );
 }

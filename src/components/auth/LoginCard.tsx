@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { useAuth } from "./AuthProvider";
-import { ShieldIcon } from "./icons";
 
 export function LoginCard() {
   const router = useRouter();
@@ -12,6 +11,7 @@ export function LoginCard() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
@@ -27,115 +27,155 @@ export function LoginCard() {
       setError(
         code.includes("invalid-credential")
           ? "Correo o contraseña incorrectos."
-          : "No fue posible iniciar sesión. Revisa la configuración de Firebase.",
+          : "No fue posible iniciar sesión. Revisa tus credenciales.",
       );
     } finally {
       setLoading(false);
     }
   };
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f5f8fc] px-5 py-10">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-[#dbe5ef] bg-white shadow-[0_24px_80px_rgba(16,35,63,0.12)] lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="hidden bg-[#10233f] p-10 text-white lg:flex lg:flex-col lg:justify-between">
+    <div className="login">
+      {/* Panel izquierdo con arte y pasos del flujo */}
+      <section className="login-art">
+        <div style={{ display: "flex", alignItems: "center", gap: ".7rem" }}>
+          <span
+            style={{
+              width: 38,
+              height: 38,
+              flexShrink: 0,
+              borderRadius: 11,
+              background: "linear-gradient(140deg,#4F46E5,#0E7C91)",
+              display: "grid",
+              placeItems: "center",
+              color: "#fff",
+              fontWeight: 700,
+              fontFamily: 'var(--mono, "Fira Code", monospace)',
+              fontSize: "1rem",
+            }}
+          >
+            DB
+          </span>
           <div>
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1d9bb8] text-lg font-bold">
-                D
-              </span>
-              <span className="text-sm font-bold tracking-[0.2em]">
-                DUCA BOT
-              </span>
+            <b style={{ display: "block", color: "#fff", fontSize: ".9rem", letterSpacing: ".04em" }}>
+              DUCAS BOT
+            </b>
+            <small style={{ color: "#A9B6CC", fontSize: ".72rem" }}>
+              Automatización aduanera
+            </small>
+          </div>
+        </div>
+
+        <div>
+          <h2>El flujo completo de tu agencia, en un solo lugar.</h2>
+          <p>
+            Lee correos de clientes, extrae los documentos de embarque con inteligencia
+            artificial, revisa los datos y radícalos en SIECA.
+          </p>
+
+          <div className="flowline">
+            <div>
+              <i>1</i> Conexión a Gmail de operaciones
             </div>
-            <p className="mt-20 text-xs font-semibold uppercase tracking-[0.24em] text-[#8edce7]">
-              Control operativo
-            </p>
-            <h1 className="mt-4 max-w-sm text-4xl font-semibold leading-tight">
-              Declaraciones aduaneras con trazabilidad.
-            </h1>
-            <p className="mt-5 max-w-sm text-sm leading-7 text-slate-300">
-              Un espacio seguro para operar extracción DUCA-T, revisar
-              resultados y monitorear cada conexión.
-            </p>
+            <div>
+              <i>2</i> Extracción de factura, carta de porte y manifiesto
+            </div>
+            <div>
+              <i>3</i> Validación de inconsistencias
+            </div>
+            <div>
+              <i>4</i> Previsualización idéntica al formulario oficial
+            </div>
+            <div>
+              <i>5</i> Envío automatizado con trazabilidad
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-300">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" /> Plataforma
-            protegida con Firebase Auth
-          </div>
-        </section>
-        <section className="p-7 sm:p-10">
-          <div className="mb-9 flex items-center gap-3 lg:hidden">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#10233f] font-bold text-white">
-              D
-            </span>
-            <span className="text-sm font-bold tracking-[0.2em] text-[#10233f]">
-              DUCA BOT
-            </span>
-          </div>
-          <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e2f6fa] text-[#147b94]">
-            <ShieldIcon className="h-6 w-6" />
-          </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#147b94]">
-            Acceso seguro
-          </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-[#10233f]">
-            Bienvenido de nuevo
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            Ingresa con tus credenciales para continuar al panel asignado.
-          </p>
-          <form onSubmit={submit} className="mt-8 space-y-5">
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#10233f]">
-                Correo electrónico
-              </span>
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="nombre@ducabot.com"
-                className="h-12 w-full rounded-xl border-[#cbd8e5] bg-white px-4 text-sm text-[#10233f] placeholder:text-slate-400 focus:border-[#1d9bb8] focus:ring-[#1d9bb8]"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-[#10233f]">
-                Contraseña
-              </span>
-              <input
-                type="password"
-                required
-                minLength={6}
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="••••••••"
-                className="h-12 w-full rounded-xl border-[#cbd8e5] bg-white px-4 text-sm text-[#10233f] placeholder:text-slate-400 focus:border-[#1d9bb8] focus:ring-[#1d9bb8]"
-              />
-            </label>
-            {error && (
-              <p
-                role="alert"
-                className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+        </div>
+
+        <small style={{ color: "#7A88A3", fontSize: ".76rem" }}>
+          Versión 2.4 · Plataforma protegida con Firebase Auth
+        </small>
+      </section>
+
+      {/* Panel derecho con formulario */}
+      <section className="login-form">
+        <div className="login-card card">
+          <div className="card-body">
+            <div className="mb-4 flex items-center gap-2 lg:hidden">
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 9,
+                  background: "linear-gradient(140deg,#4F46E5,#0E7C91)",
+                  display: "grid",
+                  placeItems: "center",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: ".8rem",
+                  fontFamily: 'var(--mono, "Fira Code", monospace)',
+                }}
               >
-                {error}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={loading}
-              className="h-12 w-full rounded-xl bg-[#10233f] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#183557] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Validando acceso..." : "Iniciar sesión"}
-            </button>
-          </form>
-          <p className="mt-8 border-t border-[#e5edf4] pt-5 text-xs leading-5 text-slate-500">
-            {" "}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[#10233f]"></code>
-            .
-          </p>
-        </section>
-      </div>
-    </main>
+                DB
+              </span>
+              <b style={{ fontSize: ".88rem", letterSpacing: ".04em" }}>DUCAS BOT</b>
+            </div>
+
+            <h1 style={{ fontSize: "1.35rem" }}>Entra a tu cuenta</h1>
+            <p className="muted" style={{ fontSize: ".85rem", marginTop: ".25rem", marginBottom: "1.1rem" }}>
+              Usa tus credenciales asignadas para acceder al sistema.
+            </p>
+
+            <form onSubmit={submit} className="space-y-3.5">
+              <label className="field">
+                <span>Correo electrónico</span>
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nombre@ducabot.com"
+                  className="input"
+                />
+              </label>
+
+              <label className="field">
+                <span>Contraseña</span>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="input"
+                />
+              </label>
+
+              <label className="check" style={{ margin: ".8rem 0" }}>
+                <input type="checkbox" defaultChecked />
+                <span style={{ fontSize: ".82rem" }}>Mantener sesión iniciada</span>
+              </label>
+
+              {error && (
+                <div className="alert alert-warn" role="alert" style={{ padding: ".65rem .85rem", fontSize: ".8rem" }}>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary btn-block"
+              >
+                {loading ? "Validando acceso..." : "Entrar al sistema"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

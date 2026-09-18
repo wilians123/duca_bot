@@ -1,4 +1,4 @@
-import type { GenerateContentParameters } from "@google/genai";
+import type { Content, GenerateContentParameters, Part } from "@google/genai";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -191,12 +191,15 @@ export const isRecoverableModelError = (error: unknown) => {
 };
 
 const extractTextForOpenRouter = (request: Omit<GenerateContentParameters, "model">) => {
-  const contents = Array.isArray(request.contents) ? request.contents : [];
-  return contents.flatMap((content: any) => {
-    const parts = Array.isArray(content?.parts) ? content.parts : [];
-    return parts.map((part: any) => {
-      if (typeof part?.text === "string") return part.text;
-      if (part?.inlineData) return "[Contenido binario adjunto; procesar con OCR/PDF del microservicio.]";
+  const contents = Array.isArray(request.contents) ? request.contents : [request.contents];
+  return contents.flatMap((content): string[] => {
+    if (typeof content !== "object" || content === null || !("parts" in content)) {
+      return [];
+    }
+    const typedContent = content as Content;
+    return (typedContent.parts || []).map((part) => {
+      if (typeof part.text === "string") return part.text;
+      if (part.inlineData) return "[Contenido binario adjunto; procesar con OCR/PDF del microservicio.]";
       return "";
     });
   }).filter(Boolean).join("\n\n");
@@ -375,7 +378,7 @@ export const buildGeminiPdfRequest = (
   fileBuffers: { mimeType: string; data: Buffer }[],
   emailBodyText: string,
 ): Omit<GenerateContentParameters, "model"> => {
-  const parts: Array<any> = [
+  const parts: Part[] = [
     { text: extractionPrompt },
     { text: "CUERPO DEL CORREO:\\n" + emailBodyText }
   ];

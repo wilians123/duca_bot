@@ -1,7 +1,6 @@
-const fs = require('fs/promises');
-const { google } = require('googleapis');
-
 async function run() {
+  const { default: fs } = await import('fs/promises');
+  const { google } = await import('googleapis');
   const query = process.argv.slice(2).join(' ').trim();
   if (!query) {
     throw new Error('Uso: node script.js <consulta de Gmail>');
