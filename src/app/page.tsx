@@ -783,36 +783,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PREVISUALIZACIÓN DUCA T */}
-      {showPreview && parsedData && (
-        <section className="card mt-5">
-          <div className="card-head">
-            <div>
-              <h2>Revisión de la Declaración DUCA-T</h2>
-              <p className="muted text-xs mt-0.5">
-                Valida cada uno de los 9 pasos antes de proceder con el envío automatizado a SIECA.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowPreview(false)}
-              className="btn btn-sm btn-ghost"
-            >
-              Cerrar revisión
-            </button>
-          </div>
-          <div className="card-body">
-            <DucaPreviewForm
-              key={JSON.stringify(parsedData)}
-              data={parsedData}
-              onChange={handleDataChange}
-              hasDiscrepancies={hasDiscrepancies}
-              discrepancyDetails={discrepancyDetails}
-            />
-          </div>
-        </section>
-      )}
-
       {/* MODAL ARCHIVOS LEÍDOS */}
       {showArchivosJson && (
         <div className="modal" onClick={() => setShowArchivosJson(false)}>
@@ -863,6 +833,54 @@ export default function Home() {
                 className="btn btn-ghost"
               >
                 Cerrar
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL REVISIÓN DUCA T */}
+      {showPreview && parsedData && (
+        <div className="modal" onClick={() => setShowPreview(false)}>
+          <div
+            className="modal-box lg"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="duca-preview-title"
+          >
+            <header className="modal-head">
+              <div className="flex-1">
+                <h2 id="duca-preview-title">Revisión de la Declaración DUCA-T</h2>
+                <p>Valida y corrige los 9 pasos antes de enviarla a SIECA.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPreview(false)}
+                className="btn btn-quiet btn-sm"
+                aria-label="Cerrar revisión DUCA-T"
+              >
+                <CloseIcon />
+              </button>
+            </header>
+
+            <div className="modal-body">
+              <DucaPreviewForm
+                key={JSON.stringify(parsedData)}
+                data={parsedData}
+                onChange={handleDataChange}
+                hasDiscrepancies={hasDiscrepancies}
+                discrepancyDetails={discrepancyDetails}
+              />
+            </div>
+
+            <footer className="modal-foot">
+              <button
+                type="button"
+                onClick={() => setShowPreview(false)}
+                className="btn btn-ghost"
+              >
+                Cerrar revisión
               </button>
             </footer>
           </div>

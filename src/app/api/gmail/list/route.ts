@@ -59,7 +59,7 @@ export async function GET() {
     const gmail = google.gmail({ version: "v1", auth: oauth2Client });
     const response = await gmail.users.messages.list({
       userId: "me",
-      maxResults: 20,
+      maxResults: 30,
       q: "has:attachment",
     });
 

@@ -103,8 +103,42 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
     return matchesQuery && matchesStatus;
   });
 
+  const downloadCsv = () => {
+    const rows = [
+      ["Referencia", "Cliente", "Ruta", "Fecha", "Estado"],
+      ...filteredItems.map((item) => [
+        item.reference || item.id,
+        item.cliente || "",
+        item.ruta || "",
+        item.createdAt ? new Date(item.createdAt).toLocaleString("es-GT") : "",
+        item.status || "Pendiente",
+      ]),
+    ];
+    const csv = rows
+      .map((row) => row.map((value) => `"${value.replaceAll('"', '""')}"`).join(","))
+      .join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "historial-tramites.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="mt-8">
+    <main className="view">
+      <div className="page-head">
+        <div>
+          <h1>Historial de trámites</h1>
+          <p>Todas las declaraciones que has procesado. Consulta sus archivos y el resultado del envío.</p>
+        </div>
+        <div className="head-actions">
+          <button type="button" className="btn btn-ghost" onClick={downloadCsv}>
+            Descargar
+          </button>
+        </div>
+      </div>
+
       {/* 4 Métricas del historial */}
       <div className="metrics">
         <article className="metric">
@@ -156,7 +190,7 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
       <section className="card">
         <div className="card-head">
           <div>
-            <h2>Historial de trámites</h2>
+            <h2>Trámites</h2>
             <p className="muted text-xs mt-0.5">Solo visible para {profile.name}</p>
           </div>
           <div className="filters" style={{ flex: "1 1 auto", justifyContent: "flex-end" }}>
@@ -190,6 +224,8 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
             <thead>
               <tr>
                 <th>Referencia</th>
+                <th>Cliente</th>
+                <th>Ruta</th>
                 <th>Fecha</th>
                 <th>Estado</th>
               </tr>
@@ -197,7 +233,7 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
             <tbody>
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="text-center py-8 muted">
+                  <td colSpan={5} className="text-center py-8 muted">
                     No hay trámites procesados con el filtro actual.
                   </td>
                 </tr>
@@ -207,6 +243,8 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
                     <td className="mono font-semibold text-xs text-[var(--primary-ink)]">
                       {item.reference || item.id}
                     </td>
+                    <td>{item.cliente || "—"}</td>
+                    <td className="muted">{item.ruta || "—"}</td>
                     <td className="muted whitespace-nowrap text-xs">
                       {item.createdAt
                         ? new Date(item.createdAt).toLocaleString("es-GT")
@@ -220,6 +258,6 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
           </table>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

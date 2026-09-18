@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider";
-import { UserHistoryPanel } from "./UserHistoryPanel";
 
 const adminPaths = ["/usuarios", "/reportes"];
 
@@ -153,8 +152,8 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
       ]
     : [
         { href: "/dashboard", label: "Trámite nuevo", icon: <InboxSvg />, badge: "4" },
-        { href: "/dashboard#historial", label: "Historial de trámites", icon: <HistorySvg /> },
-        { href: "/dashboard#conexiones", label: "Conexiones", icon: <PlugSvg /> },
+        { href: "/historial", label: "Historial de trámites", icon: <HistorySvg /> },
+        { href: "/conexiones", label: "Conexiones", icon: <PlugSvg /> },
       ];
 
   const logout = async () => {
@@ -172,7 +171,11 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
   const crumbRoot = isAdmin ? "Administración" : "Operación";
   const crumbLeaf = isAdmin
     ? pathname === "/usuarios" ? "Usuarios" : pathname === "/reportes" ? "Reportes" : "Resumen"
-    : "Trámite nuevo";
+    : pathname === "/historial"
+      ? "Historial de trámites"
+      : pathname === "/conexiones"
+        ? "Conexiones"
+        : "Trámite nuevo";
 
   // ── Sidebar ───────────────────────────────────────────────────────────────
   const sidebarWidth = collapsed ? "76px" : "272px";
@@ -214,6 +217,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
             gap: ".7rem",
             padding: "1rem 1rem .9rem",
             borderBottom: "1px solid rgba(255,255,255,.08)",
+            position: "relative",
             justifyContent: collapsed ? "center" : undefined,
           }}
         >
@@ -244,6 +248,29 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
               </small>
             </span>
           )}
+          {/* Control de colapso (solo escritorio): únicamente la flecha */}
+          <button
+            type="button"
+            aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+            onClick={() => setCollapsed((v) => !v)}
+            className="hidden md:flex"
+            style={{
+              position: collapsed ? "absolute" : undefined,
+              top: collapsed ? 10 : undefined,
+              right: collapsed ? 8 : undefined,
+              width: 28,
+              height: 28,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 8,
+              color: "#C2CCDD",
+              fontSize: "1.35rem",
+              lineHeight: 1,
+            }}
+          >
+            {collapsed ? "›" : "‹"}
+          </button>
+
           {/* Botón cerrar (solo móvil) */}
           <button
             type="button"
@@ -321,30 +348,6 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
 
         {/* Footer del sidebar */}
         <div style={{ padding: ".8rem", borderTop: "1px solid rgba(255,255,255,.08)" }}>
-          {/* Colapsar sidebar (desktop) */}
-          <button
-            type="button"
-            aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
-            onClick={() => setCollapsed((v) => !v)}
-            className="hidden md:flex"
-            style={{
-              width: "100%",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : undefined,
-              gap: ".5rem",
-              padding: ".55rem",
-              borderRadius: 9,
-              border: "1px solid rgba(255,255,255,.12)",
-              color: "#C2CCDD",
-              fontSize: ".8rem",
-              fontWeight: 600,
-              marginBottom: ".6rem",
-            }}
-          >
-            <span style={{ fontSize: "1rem" }}>{collapsed ? "»" : "«"}</span>
-            {!collapsed && <span>Colapsar menú</span>}
-          </button>
-
           {/* Usuario */}
           <div
             style={{
@@ -503,11 +506,6 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
 
         <div style={{ minHeight: "calc(100vh - 60px)" }}>
           {children}
-          {!isAdmin && (pathname === "/" || pathname === "/dashboard") && (
-            <div id="historial" style={{ padding: "0 clamp(1rem,2.2vw,1.9rem) 2.5rem" }}>
-              <UserHistoryPanel profile={profile} />
-            </div>
-          )}
         </div>
       </div>
 
@@ -602,11 +600,6 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
 
         <div>
           {children}
-          {!isAdmin && (pathname === "/" || pathname === "/dashboard") && (
-            <div id="historial" style={{ padding: "0 1rem 2.5rem" }}>
-              <UserHistoryPanel profile={profile} />
-            </div>
-          )}
         </div>
       </div>
     </div>

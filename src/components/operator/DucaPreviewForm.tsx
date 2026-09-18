@@ -17,7 +17,6 @@ interface DucaStep extends DucaObject {
   paisDestino?: DucaScalar;
   aduanaEntrada?: DucaScalar;
   observaciones?: DucaScalar;
-  numeroDeclaracion?: DucaScalar;
   nombre?: DucaScalar;
   nit?: DucaScalar;
   tipoDocumento?: DucaScalar;
@@ -235,13 +234,6 @@ export function DucaPreviewForm({
                   label="Observaciones"
                   value={localData.paso1?.observaciones}
                   onChange={(v) => handleChange(["paso1", "observaciones"], v)}
-                />
-              </div>
-              <div className="span-all">
-                <TextField
-                  label="Número de Declaración"
-                  value={localData.paso1?.numeroDeclaracion}
-                  onChange={(v) => handleChange(["paso1", "numeroDeclaracion"], v)}
                 />
               </div>
             </div>
