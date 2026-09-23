@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cleanDucaData, parseJsonFromModel } from "@/lib/duca-extraction";
+import { cleanDucaData, parseJsonFromModel } from "@/lib/duca-data";
 
 describe("DUCA Extraction Utilities", () => {
   describe("parseJsonFromModel", () => {

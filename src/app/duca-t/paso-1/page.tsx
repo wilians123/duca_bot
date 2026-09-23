@@ -29,7 +29,7 @@ export default function Paso1RutaPage() {
 
   const isValid = () => {
     // Validación mínima de campos requeridos (marcados con * en el HTML original)
-    return Boolean(ruta.paisProcedencia && ruta.aduanaInicio && ruta.paisDestino && ruta.aduanaDestino);
+    return Boolean(ruta.PaisProcedencia && ruta.AduanaInicio && ruta.PaisDestino && ruta.AduanaDestino);
   };
 
   return (
@@ -43,33 +43,16 @@ export default function Paso1RutaPage() {
           <SelectField
             label="País de procedencia"
             required
-            value={ruta.paisProcedencia}
-            onChange={(v) => updateRuta({ paisProcedencia: v })}
+            value={ruta.PaisProcedencia}
+            onChange={(v) => updateRuta({ PaisProcedencia: v })}
             options={PAISES}
           />
           <SelectField
             label="Aduana de inicio"
             required
-            value={ruta.aduanaInicio}
-            onChange={(v) => updateRuta({ aduanaInicio: v })}
+            value={ruta.AduanaInicio}
+            onChange={(v) => updateRuta({ AduanaInicio: v })}
             options={ADUANAS_INICIO}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SelectField
-            label="Depósito de origen"
-            value={ruta.depositoOrigen}
-            onChange={(v) => updateRuta({ depositoOrigen: v })}
-            options={[]}
-            infoTooltip="Información sobre depósito"
-          />
-          <SelectField
-            label="Lugar de embarque"
-            value={ruta.lugarEmbarque}
-            onChange={(v) => updateRuta({ lugarEmbarque: v })}
-            options={[]}
-            infoTooltip="Información sobre lugar de embarque"
           />
         </div>
 
@@ -77,61 +60,23 @@ export default function Paso1RutaPage() {
           <SelectField
             label="País de destino"
             required
-            value={ruta.paisDestino}
-            onChange={(v) => updateRuta({ paisDestino: v })}
+            value={ruta.PaisDestino}
+            onChange={(v) => updateRuta({ PaisDestino: v })}
             options={PAISES}
           />
           <SelectField
             label="Aduana de destino"
             required
-            value={ruta.aduanaDestino}
-            onChange={(v) => updateRuta({ aduanaDestino: v })}
+            value={ruta.AduanaDestino}
+            onChange={(v) => updateRuta({ AduanaDestino: v })}
             options={ADUANAS_DESTINO}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SelectField
-            label="Depósito de destino"
-            value={ruta.depositoDestino}
-            onChange={(v) => updateRuta({ depositoDestino: v })}
-            options={[]}
-          />
-          <SelectField
-            label="Lugar de desembarque"
-            value={ruta.lugarDesembarque}
-            onChange={(v) => updateRuta({ lugarDesembarque: v })}
-            options={[]}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Régimen aduanero y modo de transporte son fijos por diseño de
-              negocio (siempre "Transito internacional" / "Transporte
-              terrestre"), por eso quedan deshabilitados intencionalmente,
-              a diferencia de los demás campos que sí se liberaron. */}
-          <SelectField
-            label="Régimen aduanero"
-            required
-            value={ruta.regimenAduanero}
-            onChange={() => {}}
-            options={[{ label: "Transito internacional", value: "Transito internacional" }]}
-            disabled
-          />
-          <SelectField
-            label="Modo de transporte"
-            required
-            value={ruta.modoTransporte}
-            onChange={() => {}}
-            options={[{ label: "Transporte terrestre", value: "Transporte terrestre" }]}
-            disabled
-          />
-        </div>
-
         <TextareaField
-          label="Observaciones"
-          value={ruta.observaciones}
-          onChange={(v) => updateRuta({ observaciones: v })}
+          label="Observaciones (máx. 1500 caracteres)"
+          value={ruta.Observaciones}
+          onChange={(v) => updateRuta({ Observaciones: v })}
         />
 
         <div className="w-full border-t border-outline-variant my-6" />

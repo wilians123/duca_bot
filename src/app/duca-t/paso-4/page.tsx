@@ -10,13 +10,12 @@ export default function Paso4RutaTransitoPage() {
   const addTramoRuta = useDucaFormStore((s) => s.addTramoRuta);
   const updateTramoRuta = useDucaFormStore((s) => s.updateTramoRuta);
   const removeTramoRuta = useDucaFormStore((s) => s.removeTramoRuta);
-
-  const [draft, setDraft] = useState({ pais: "", aduanaInicio: "", aduanaPaso: "" });
+  const [draft, setDraft] = useState({ AduanaPaso: "" });
 
   const handleAdd = () => {
-    if (!draft.pais || !draft.aduanaInicio || !draft.aduanaPaso) return;
+    if (!draft.AduanaPaso) return;
     addTramoRuta(draft);
-    setDraft({ pais: "", aduanaInicio: "", aduanaPaso: "" });
+    setDraft({ AduanaPaso: "" });
   };
 
   const isValid = () => tramos.length > 0;
@@ -32,12 +31,6 @@ export default function Paso4RutaTransitoPage() {
                   Orden
                 </th>
                 <th className="p-3 text-table-header font-table-header text-on-surface border-l border-outline-variant">
-                  País
-                </th>
-                <th className="p-3 text-table-header font-table-header text-on-surface border-l border-outline-variant">
-                  Aduana de inicio
-                </th>
-                <th className="p-3 text-table-header font-table-header text-on-surface border-l border-outline-variant">
                   Aduana de paso
                 </th>
                 <th className="p-3 w-16" />
@@ -50,22 +43,8 @@ export default function Paso4RutaTransitoPage() {
                   <td className="p-3 border-l border-outline-variant">
                     <input
                       className="w-full h-9 border border-outline-variant rounded bg-white px-2 text-body-md"
-                      value={tramo.pais}
-                      onChange={(e) => updateTramoRuta(index, { pais: e.target.value })}
-                    />
-                  </td>
-                  <td className="p-3 border-l border-outline-variant">
-                    <input
-                      className="w-full h-9 border border-outline-variant rounded bg-white px-2 text-body-md"
-                      value={tramo.aduanaInicio}
-                      onChange={(e) => updateTramoRuta(index, { aduanaInicio: e.target.value })}
-                    />
-                  </td>
-                  <td className="p-3 border-l border-outline-variant">
-                    <input
-                      className="w-full h-9 border border-outline-variant rounded bg-white px-2 text-body-md"
-                      value={tramo.aduanaPaso}
-                      onChange={(e) => updateTramoRuta(index, { aduanaPaso: e.target.value })}
+                      value={tramo.AduanaPaso}
+                      onChange={(e) => updateTramoRuta(index, { AduanaPaso: e.target.value })}
                     />
                   </td>
                   <td className="p-3 text-center">
@@ -79,8 +58,6 @@ export default function Paso4RutaTransitoPage() {
                   </td>
                 </tr>
               ))}
-
-              {/* Fila para agregar un nuevo tramo */}
               <tr className="border-t border-outline-variant bg-surface-container-lowest">
                 <td className="p-3 text-center text-on-surface-variant text-body-sm">
                   {tramos.length + 1}
@@ -88,25 +65,9 @@ export default function Paso4RutaTransitoPage() {
                 <td className="p-3 border-l border-outline-variant">
                   <input
                     className="w-full h-9 border border-outline-variant rounded bg-white px-2 text-body-md"
-                    placeholder="País"
-                    value={draft.pais}
-                    onChange={(e) => setDraft((d) => ({ ...d, pais: e.target.value }))}
-                  />
-                </td>
-                <td className="p-3 border-l border-outline-variant">
-                  <input
-                    className="w-full h-9 border border-outline-variant rounded bg-white px-2 text-body-md"
-                    placeholder="Aduana de inicio"
-                    value={draft.aduanaInicio}
-                    onChange={(e) => setDraft((d) => ({ ...d, aduanaInicio: e.target.value }))}
-                  />
-                </td>
-                <td className="p-3 border-l border-outline-variant">
-                  <input
-                    className="w-full h-9 border border-outline-variant rounded bg-white px-2 text-body-md"
                     placeholder="Aduana de paso"
-                    value={draft.aduanaPaso}
-                    onChange={(e) => setDraft((d) => ({ ...d, aduanaPaso: e.target.value }))}
+                    value={draft.AduanaPaso}
+                    onChange={(e) => setDraft({ AduanaPaso: e.target.value })}
                   />
                 </td>
                 <td className="p-3 text-center">

@@ -1,52 +1,30 @@
-// Tipado del formulario DUCA-T.
-// Se alinea deliberadamente con el tipo `DucaData` que ya existe en
-// lib/duca-extraction.ts, para que el bot de extraccion (Gemini) pueda
-// precargar este mismo store sin transformar la forma de los datos.
-
 export interface RutaData {
-  paisProcedencia: string;
-  aduanaInicio: string;
-  depositoOrigen: string;
-  lugarEmbarque: string;
-  paisDestino: string;
-  aduanaDestino: string;
-  depositoDestino: string;
-  lugarDesembarque: string;
-  regimenAduanero: string; // fijo: "Transito internacional"
-  modoTransporte: string; // fijo: "Transporte terrestre"
-  observaciones: string;
+  PaisProcedencia: string;
+  AduanaInicio: string;
+  PaisDestino: string;
+  AduanaDestino: string;
+  Observaciones: string;
 }
 
 export interface ExportadorData {
-  tipoDocumento: string;
-  numeroDocumento: string;
-  nombreRazonSocial: string;
-  domicilioFiscal: string;
-  tipoDocumentoIdentificacion: string;
-  numeroDocumentoIdentificacion: string;
-  paisEmision: string;
+  NombreExportador: string;
+  DomicilioExportador: string;
+  TipoIdentificacionExportador: string;
+  NumeroIdentificacionExportador: string;
+  PaisExportador: string;
 }
 
 export interface ImportadorData {
-  tipoDocumento: string;
-  numeroDocumento: string;
-  nombreRazonSocial: string;
-  domicilioFiscal: string;
-  tipoDocumentoIdentificacion: string;
-  numeroDocumentoIdentificacion: string;
-  paisEmision: string;
+  NombreImportador: string;
+  DomicilioImportador: string;
+  TipoIdentificacionImportador: string;
+  NumeroIdentificacionImportador: string;
+  PaisImportador: string;
 }
 
-// Paso 4: Ruta de transito. En el HTML original esta pagina muestra una
-// tabla de tramos (pais / aduana de inicio / aduana de paso) que el
-// usuario marca/selecciona desde un catalogo. Aqui se modela como un
-// arreglo editable de tramos para que el usuario pueda agregar, editar
-// y quitar filas libremente.
 export interface TramoRutaTransito {
   orden: number;
-  pais: string;
-  aduanaInicio: string;
-  aduanaPaso: string;
+  AduanaPaso: string;
 }
 
 export interface RutaTransitoData {
@@ -54,97 +32,61 @@ export interface RutaTransitoData {
 }
 
 export interface TransportistaData {
-  codigo?: string | null;
-  nombre?: string | null;
-  direccion?: string | null;
-  nit?: string | null;
+  CodigoTransportista?: string | null;
 }
 
 export interface ConductorData {
-  codigo?: string | null;
-  primerNombre?: string | null;
-  segundoNombre?: string | null;
-  primerApellido?: string | null;
-  segundoApellido?: string | null;
-  tipoDocumentoIdentificacion?: string | null;
-  numeroDocumentoIdentificacion?: string | null;
-  fechaVencimientoDocumento?: string | null;
-  paisExpedicionDocumento?: string | null;
-  numeroPasaporte?: string | null;
-  fechaVencimientoPasaporte?: string | null;
-  paisEmisionPasaporte?: string | null;
-  numeroLicencia?: string | null;
-  paisEmisionLicencia?: string | null;
-  fechaNacimiento?: string | null;
-  paisNacimiento?: string | null;
-  // Alias usados por lib/duca-extraction.ts (bot de extraccion)
-  nombre?: string | null;
-  documento?: string | null;
-  tipoDocumento?: string | null;
-  licencia?: string | null;
-  nacionalidad?: string | null;
+  LicenciaConductor?: string | null;
 }
 
 export interface VehiculoData {
-  numeroPlaca?: string | null;
-  marca?: string | null;
-  modelo?: string | null;
-  numeroChasisVin?: string | null;
-  numeroMotor?: string | null;
-  paisRegistro?: string | null;
-  // Alias usado por lib/duca-extraction.ts
-  placa?: string | null;
-  nacionalidad?: string | null;
-}
-
-export interface RemolqueData {
-  chasis?: string | null;
-  placa?: string | null;
-  nacionalidad?: string | null;
-}
-
-export interface ContenedorData {
-  numero?: string | null;
-  tipo?: string | null;
-  tamano?: string | null;
+  PlacaTransporte?: string | null;
 }
 
 export interface GastosData {
-  transporte?: number | string | null;
-  seguro?: number | string | null;
-  otros?: number | string | null;
+  ValorFOB?: number | string | null;
+  GastosTransporte?: number | string | null;
+  GastosSeguro?: number | string | null;
+  OtrosGastos?: number | string | null;
+  ValorTotal?: number | string | null;
 }
 
 export interface MercanciaData {
-  descripcion?: string | null;
-  numeroMercancia?: string | null;
-  cantidad?: number | string | null;
-  bultos?: number | string | null;
-  claseBultos?: string | null;
-  pesoBruto?: number | string | null;
-  pesoNeto?: number | string | null;
-  valor?: number | string | null;
-  paisOrigen?: string | null;
+  PartidaArancelaria?: string | null;
+  DescripcionMercancia?: string | null;
+  CantidadMercancia?: number | string | null;
+  ClaseMercancia?: string | null;
+  PaisMercancia?: string | null;
+  PesoMercancia?: number | string | null;
 }
 
 export interface EquipamientoData {
-  tipoEquipo: string; // "Contenedor" | "Remolque"
-  tipoCarga: string; // "Contenerizada" | "Suelto"
-  identificacionRemolque: string;
-  numeroDispositivoSeguridad: string;
-  tipoContenedor: string;
-  tamanoEquipamiento: string;
-  numeroIdentificacionContenedor: string;
-  nacionalidadRemolque: string;
+  TipoEquipamiento: string;
+  TipoCarga: string;
+  PlacaChasis: string;
+  MarchamoSat: string;
+  TamañoContenedor: string;
+  NumeroContenedor: string;
+  PaisChasis: string;
 }
 
 export interface DocumentoSoporte {
   id: string;
-  nombre: string;
   incluido: boolean;
+  NombreDocumentoPorte?: string;
+  TipoDocumentoPorte?: string;
+  NumeroDocumentoPorte?: string;
+  NombreDocumentoFactura?: string;
+  TipoDocumentoFactura?: string;
+  NumeroDocumentoFactura?: string;
+  NombreDocumentoManifiesto?: string;
+  TipoDocumentoManifiesto?: string;
+  NumeroDocumentoManifiesto?: string;
+  NombreDocumentoBL?: string;
+  TipoDocumentoManifiestoBL?: string;
+  NumeroDocumentoManifiestoBL?: string;
 }
 
-// Estructura completa del tramite DUCA-T, un slice por paso.
 export interface DucaFormState {
   ruta: RutaData;
   exportador: ExportadorData;
@@ -153,14 +95,10 @@ export interface DucaFormState {
   transportista: TransportistaData;
   conductor: ConductorData;
   vehiculo: VehiculoData;
-  remolque: RemolqueData;
-  contenedor: ContenedorData;
-  marchamo: string | null;
   gastos: GastosData;
   mercancias: MercanciaData[];
   equipamientos: EquipamientoData[];
   documentos: DocumentoSoporte[];
-  referencia?: string | null;
 }
 
 export const STEPS = [

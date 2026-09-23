@@ -12,53 +12,64 @@ export interface DucaObject {
 }
 
 interface DucaStep extends DucaObject {
-  paisInicio?: DucaScalar;
-  aduanaSalida?: DucaScalar;
-  paisDestino?: DucaScalar;
-  aduanaEntrada?: DucaScalar;
-  observaciones?: DucaScalar;
-  nombre?: DucaScalar;
-  nit?: DucaScalar;
-  tipoDocumento?: DucaScalar;
-  pais?: DucaScalar;
-  aduanaPaso?: DucaScalar;
-  transportista?: DucaObject & { codigo?: DucaScalar };
-  vehiculo?: DucaObject & { placa?: DucaScalar };
-  documento?: DucaScalar;
+  PaisProcedencia?: DucaScalar;
+  AduanaInicio?: DucaScalar;
+  PaisDestino?: DucaScalar;
+  AduanaDestino?: DucaScalar;
+  Observaciones?: DucaScalar;
+  NombreExportador?: DucaScalar;
+  DomicilioExportador?: DucaScalar;
+  TipoIdentificacionExportador?: DucaScalar;
+  NumeroIdentificacionExportador?: DucaScalar;
+  PaisExportador?: DucaScalar;
+  NombreImportador?: DucaScalar;
+  DomicilioImportador?: DucaScalar;
+  TipoIdentificacionImportador?: DucaScalar;
+  NumeroIdentificacionImportador?: DucaScalar;
+  PaisImportador?: DucaScalar;
+  AduanaPaso?: DucaScalar;
+  CodigoTransportista?: DucaScalar;
+  PlacaTransporte?: DucaScalar;
+  LicenciaConductor?: DucaScalar;
   gastos?: DucaObject & {
-    transporte?: DucaScalar;
-    seguro?: DucaScalar;
-    otros?: DucaScalar;
+    ValorFOB?: DucaScalar;
+    GastosTransporte?: DucaScalar;
+    GastosSeguro?: DucaScalar;
+    OtrosGastos?: DucaScalar;
+    ValorTotal?: DucaScalar;
   };
   mercancias?: DucaItem[];
-  equipamiento?: DucaScalar;
-  tipoCarga?: DucaScalar;
-  remolque?: DucaObject & {
-    chasis?: DucaScalar;
-    nacionalidad?: DucaScalar;
-  };
-  contenedor?: DucaObject & {
-    numero?: DucaScalar;
-    tipo?: DucaScalar;
-    tamano?: DucaScalar;
-  };
-  marchamo?: DucaScalar;
+  TipoEquipamiento?: DucaScalar;
+  TipoCarga?: DucaScalar;
+  PlacaChasis?: DucaScalar;
+  MarchamoSat?: DucaScalar;
+  TamañoContenedor?: DucaScalar;
+  NumeroContenedor?: DucaScalar;
+  PaisChasis?: DucaScalar;
 }
 
 interface DucaItem extends DucaObject {
-  descripcion?: DucaScalar;
-  numeroMercancia?: DucaScalar;
-  bultos?: DucaScalar;
-  pesoBruto?: DucaScalar;
-  valor?: DucaScalar;
+  PartidaArancelaria?: DucaScalar;
+  DescripcionMercancia?: DucaScalar;
+  CantidadMercancia?: DucaScalar;
+  ClaseMercancia?: DucaScalar;
+  PaisMercancia?: DucaScalar;
+  PesoMercancia?: DucaScalar;
 }
 
 interface DucaDocument extends DucaObject {
-  nombreArchivo?: DucaScalar;
-  nombreDocumento?: DucaScalar;
-  tipoArchivo?: DucaScalar;
-  tipoDocumento?: DucaScalar;
-  numeroDocumento?: DucaScalar;
+  NombreDocumentoPorte?: DucaScalar;
+  TipoDocumentoPorte?: DucaScalar;
+  NumeroDocumentoPorte?: DucaScalar;
+  NombreDocumentoFactura?: DucaScalar;
+  TipoDocumentoFactura?: DucaScalar;
+  NumeroDocumentoFactura?: DucaScalar;
+  NombreDocumentoManifiesto?: DucaScalar;
+  TipoDocumentoManifiesto?: DucaScalar;
+  NumeroDocumentoManifiesto?: DucaScalar;
+  NombreDocumentoBL?: DucaScalar;
+  TipoDocumentoManifiestoBL?: DucaScalar;
+  NumeroDocumentoManifiestoBL?: DucaScalar;
 }
 
 export interface DucaDataState extends DucaObject {
@@ -80,6 +91,20 @@ interface DucaPreviewFormProps {
   discrepancyDetails: string | null;
 }
 
+function updatePaso7Total(data: DucaDataState) {
+  const paso7 = data.paso7;
+  if (!paso7) return;
+
+  const gastos = paso7.gastos;
+  const ValorTotal =
+    (Number(gastos?.ValorFOB) || 0) +
+    (Number(gastos?.GastosTransporte) || 0) +
+    (Number(gastos?.GastosSeguro) || 0) +
+    (Number(gastos?.OtrosGastos) || 0);
+
+  paso7.gastos = { ...(gastos ?? {}), ValorTotal };
+}
+
 const STEP_TITLES = [
   "Ruta",
   "Exportador",
@@ -91,6 +116,37 @@ const STEP_TITLES = [
   "Documentos Adjuntos",
   "Equipamiento y Transporte",
 ];
+
+const DOCUMENT_BLOCKS = [
+  {
+    key: "porte",
+    title: "Carta de porte",
+    nombre: "NombreDocumentoPorte",
+    tipo: "TipoDocumentoPorte",
+    numero: "NumeroDocumentoPorte",
+  },
+  {
+    key: "facturas",
+    title: "Facturas",
+    nombre: "NombreDocumentoFactura",
+    tipo: "TipoDocumentoFactura",
+    numero: "NumeroDocumentoFactura",
+  },
+  {
+    key: "manifiestos",
+    title: "Manifiestos",
+    nombre: "NombreDocumentoManifiesto",
+    tipo: "TipoDocumentoManifiesto",
+    numero: "NumeroDocumentoManifiesto",
+  },
+  {
+    key: "otros",
+    title: "Otros",
+    nombre: "NombreDocumentoBL",
+    tipo: "TipoDocumentoManifiestoBL",
+    numero: "NumeroDocumentoManifiestoBL",
+  },
+] as const;
 
 function WarnIcon() {
   return (
@@ -114,6 +170,12 @@ export function DucaPreviewForm({
 
   if (!localData) return null;
 
+  const valorTotalPaso7 =
+    (Number(localData.paso7?.gastos?.ValorFOB) || 0) +
+    (Number(localData.paso7?.gastos?.GastosTransporte) || 0) +
+    (Number(localData.paso7?.gastos?.GastosSeguro) || 0) +
+    (Number(localData.paso7?.gastos?.OtrosGastos) || 0);
+
   const handleChange = (path: string[], value: DucaScalar) => {
     const newData = structuredClone(localData);
     let current: DucaObject = newData;
@@ -125,6 +187,7 @@ export function DucaPreviewForm({
       current = current[path[i]] as DucaObject;
     }
     current[path[path.length - 1]] = value;
+    updatePaso7Total(newData);
     setLocalData(newData);
     setHasUnsavedChanges(true);
   };
@@ -144,12 +207,16 @@ export function DucaPreviewForm({
     const item = items[index];
     if (!item || typeof item !== "object" || Array.isArray(item)) return;
     item[field] = value;
+    updatePaso7Total(newData);
     setLocalData(newData);
     setHasUnsavedChanges(true);
   };
 
   const handleSave = () => {
-    onChange(localData);
+    const newData = structuredClone(localData);
+    updatePaso7Total(newData);
+    onChange(newData);
+    setLocalData(newData);
     setHasUnsavedChanges(false);
   };
 
@@ -211,29 +278,29 @@ export function DucaPreviewForm({
             <div className="grid cols-2">
               <TextField
                 label="País de procedencia"
-                value={localData.paso1?.paisInicio}
-                onChange={(v) => handleChange(["paso1", "paisInicio"], v)}
+                value={localData.paso1?.PaisProcedencia}
+                onChange={(v) => handleChange(["paso1", "PaisProcedencia"], v)}
               />
               <TextField
                 label="Aduana de inicio"
-                value={localData.paso1?.aduanaSalida}
-                onChange={(v) => handleChange(["paso1", "aduanaSalida"], v)}
+                value={localData.paso1?.AduanaInicio}
+                onChange={(v) => handleChange(["paso1", "AduanaInicio"], v)}
               />
               <TextField
                 label="País de destino"
-                value={localData.paso1?.paisDestino}
-                onChange={(v) => handleChange(["paso1", "paisDestino"], v)}
+                value={localData.paso1?.PaisDestino}
+                onChange={(v) => handleChange(["paso1", "PaisDestino"], v)}
               />
               <TextField
                 label="Aduana de destino"
-                value={localData.paso1?.aduanaEntrada}
-                onChange={(v) => handleChange(["paso1", "aduanaEntrada"], v)}
+                value={localData.paso1?.AduanaDestino}
+                onChange={(v) => handleChange(["paso1", "AduanaDestino"], v)}
               />
               <div className="span-all">
                 <TextareaField
-                  label="Observaciones"
-                  value={localData.paso1?.observaciones}
-                  onChange={(v) => handleChange(["paso1", "observaciones"], v)}
+                  label="Observaciones (máx. 1500 caracteres)"
+                  value={localData.paso1?.Observaciones}
+                  onChange={(v) => handleChange(["paso1", "Observaciones"], v)}
                 />
               </div>
             </div>
@@ -248,28 +315,33 @@ export function DucaPreviewForm({
             <div className="grid cols-2">
               <div className="span-all">
                 <TextField
-                  label="Nombre o razón social"
-                  value={localData.paso2?.nombre}
-                  onChange={(v) => handleChange(["paso2", "nombre"], v)}
+                  label="Nombre o razón social del exportador"
+                  value={localData.paso2?.NombreExportador}
+                  onChange={(v) => handleChange(["paso2", "NombreExportador"], v)}
                 />
               </div>
               <TextField
-                label="Número de documento de identificación (NIT)"
-                value={localData.paso2?.nit}
-                onChange={(v) => handleChange(["paso2", "nit"], v)}
+                label="Domicilio fiscal del exportador"
+                value={localData.paso2?.DomicilioExportador}
+                onChange={(v) => handleChange(["paso2", "DomicilioExportador"], v)}
               />
               <TextField
                 label="Tipo de documento de identificación"
-                value={localData.paso2?.tipoDocumento}
-                onChange={(v) => handleChange(["paso2", "tipoDocumento"], v)}
+                value={localData.paso2?.TipoIdentificacionExportador}
+                onChange={(v) => handleChange(["paso2", "TipoIdentificacionExportador"], v)}
               />
               <div className="span-all">
                 <TextField
                   label="País de emisión"
-                  value={localData.paso2?.pais}
-                  onChange={(v) => handleChange(["paso2", "pais"], v)}
+                  value={localData.paso2?.PaisExportador}
+                  onChange={(v) => handleChange(["paso2", "PaisExportador"], v)}
                 />
               </div>
+              <TextField
+                label="Número de documento de identificación"
+                value={localData.paso2?.NumeroIdentificacionExportador}
+                onChange={(v) => handleChange(["paso2", "NumeroIdentificacionExportador"], v)}
+              />
             </div>
           </section>
 
@@ -282,28 +354,33 @@ export function DucaPreviewForm({
             <div className="grid cols-2">
               <div className="span-all">
                 <TextField
-                  label="Nombre o razón social"
-                  value={localData.paso3?.nombre}
-                  onChange={(v) => handleChange(["paso3", "nombre"], v)}
+                  label="Nombre o razón social del importador"
+                  value={localData.paso3?.NombreImportador}
+                  onChange={(v) => handleChange(["paso3", "NombreImportador"], v)}
                 />
               </div>
               <TextField
-                label="Número de documento de identificación (NIT)"
-                value={localData.paso3?.nit}
-                onChange={(v) => handleChange(["paso3", "nit"], v)}
+                label="Domicilio fiscal del importador"
+                value={localData.paso3?.DomicilioImportador}
+                onChange={(v) => handleChange(["paso3", "DomicilioImportador"], v)}
               />
               <TextField
                 label="Tipo de documento de identificación"
-                value={localData.paso3?.tipoDocumento}
-                onChange={(v) => handleChange(["paso3", "tipoDocumento"], v)}
+                value={localData.paso3?.TipoIdentificacionImportador}
+                onChange={(v) => handleChange(["paso3", "TipoIdentificacionImportador"], v)}
               />
               <div className="span-all">
                 <TextField
                   label="País de emisión"
-                  value={localData.paso3?.pais}
-                  onChange={(v) => handleChange(["paso3", "pais"], v)}
+                  value={localData.paso3?.PaisImportador}
+                  onChange={(v) => handleChange(["paso3", "PaisImportador"], v)}
                 />
               </div>
+              <TextField
+                label="Número de documento de identificación"
+                value={localData.paso3?.NumeroIdentificacionImportador}
+                onChange={(v) => handleChange(["paso3", "NumeroIdentificacionImportador"], v)}
+              />
             </div>
           </section>
 
@@ -315,9 +392,9 @@ export function DucaPreviewForm({
             </header>
             <div className="grid">
               <TextField
-                label="Aduana de Paso"
-                value={localData.paso4?.aduanaPaso}
-                onChange={(v) => handleChange(["paso4", "aduanaPaso"], v)}
+                label="Aduana de paso"
+                value={localData.paso4?.AduanaPaso}
+                onChange={(v) => handleChange(["paso4", "AduanaPaso"], v)}
               />
             </div>
           </section>
@@ -330,14 +407,14 @@ export function DucaPreviewForm({
             </header>
             <div className="grid cols-2">
               <TextField
-                label="Código Transportista"
-                value={localData.paso5?.transportista?.codigo}
-                onChange={(v) => handleChange(["paso5", "transportista", "codigo"], v)}
+                label="Código del transportista"
+                value={localData.paso5?.CodigoTransportista}
+                onChange={(v) => handleChange(["paso5", "CodigoTransportista"], v)}
               />
               <TextField
-                label="Placa Vehículo"
-                value={localData.paso5?.vehiculo?.placa}
-                onChange={(v) => handleChange(["paso5", "vehiculo", "placa"], v)}
+                label="Número de identificación de la unidad de transporte (No. de placa)"
+                value={localData.paso5?.PlacaTransporte}
+                onChange={(v) => handleChange(["paso5", "PlacaTransporte"], v)}
               />
             </div>
           </section>
@@ -350,42 +427,48 @@ export function DucaPreviewForm({
             </header>
             <div className="grid cols-2">
               <TextField
-                label="Documento"
-                value={localData.paso6?.documento}
-                onChange={(v) => handleChange(["paso6", "documento"], v)}
-              />
-              <TextField
-                label="Tipo Documento"
-                value={localData.paso6?.tipoDocumento}
-                onChange={(v) => handleChange(["paso6", "tipoDocumento"], v)}
+                label="Licencia"
+                value={localData.paso6?.LicenciaConductor}
+                onChange={(v) => handleChange(["paso6", "LicenciaConductor"], v)}
               />
             </div>
           </section>
 
-          {/* PASO 7: Mercancías y Gastos */}
+          {/* PASO 7: Mercancías */}
           <section className="duca-step" id="duca-preview-paso-7">
             <header>
               <span className="flow-num">7</span>
-              <h3>Paso 7: Mercancías y Gastos</h3>
+              <h3>Paso 7: Mercancías</h3>
             </header>
             <div className="grid">
               <div className="subcard">
                 <h4>Gastos</h4>
                 <div className="grid cols-3" style={{ padding: 0 }}>
                   <TextField
-                    label="Transporte"
-                    value={localData.paso7?.gastos?.transporte}
-                    onChange={(v) => handleChange(["paso7", "gastos", "transporte"], v)}
+                    label="Valor transacción"
+                    value={localData.paso7?.gastos?.ValorFOB}
+                    onChange={(v) => handleChange(["paso7", "gastos", "ValorFOB"], v)}
                   />
                   <TextField
-                    label="Seguro"
-                    value={localData.paso7?.gastos?.seguro}
-                    onChange={(v) => handleChange(["paso7", "gastos", "seguro"], v)}
+                    label="Gastos de transporte"
+                    value={localData.paso7?.gastos?.GastosTransporte}
+                    onChange={(v) => handleChange(["paso7", "gastos", "GastosTransporte"], v)}
+                  />
+                  <TextField
+                    label="Gastos de seguro"
+                    value={localData.paso7?.gastos?.GastosSeguro}
+                    onChange={(v) => handleChange(["paso7", "gastos", "GastosSeguro"], v)}
                   />
                   <TextField
                     label="Otros Gastos"
-                    value={localData.paso7?.gastos?.otros}
-                    onChange={(v) => handleChange(["paso7", "gastos", "otros"], v)}
+                    value={localData.paso7?.gastos?.OtrosGastos}
+                    onChange={(v) => handleChange(["paso7", "gastos", "OtrosGastos"], v)}
+                  />
+                  <TextField
+                    label="Valor en aduana total"
+                    value={valorTotalPaso7}
+                    onChange={() => {}}
+                    disabled
                   />
                 </div>
               </div>
@@ -393,40 +476,49 @@ export function DucaPreviewForm({
               {localData.paso7?.mercancias?.map((merc, i: number) => (
                 <div key={i} className="subcard">
                   <h4>Mercancía {i + 1}</h4>
-                  <TextField
-                    label="Descripción"
-                    value={merc.descripcion}
-                    onChange={(v) =>
-                      handleArrayChange("paso7", "mercancias", i, "descripcion", v)
-                    }
-                  />
+                  <div className="grid cols-2" style={{ padding: 0 }}>
+                    <TextField
+                      label="Mercancía"
+                      value={merc.PartidaArancelaria}
+                      onChange={(v) =>
+                        handleArrayChange("paso7", "mercancias", i, "PartidaArancelaria", v)
+                      }
+                    />
+                    <TextField
+                      label="Descripción"
+                      value={merc.DescripcionMercancia}
+                      onChange={(v) =>
+                        handleArrayChange("paso7", "mercancias", i, "DescripcionMercancia", v)
+                      }
+                    />
+                  </div>
                   <div className="grid cols-4" style={{ padding: 0 }}>
                     <TextField
-                      label="Partida Arancelaria"
-                      value={merc.numeroMercancia}
+                      label="Cantidad de bultos"
+                      value={merc.CantidadMercancia?.toString()}
                       onChange={(v) =>
-                        handleArrayChange("paso7", "mercancias", i, "numeroMercancia", v)
+                        handleArrayChange("paso7", "mercancias", i, "CantidadMercancia", v)
                       }
                     />
                     <TextField
-                      label="Bultos"
-                      value={merc.bultos?.toString()}
+                      label="Clase de bultos"
+                      value={merc.ClaseMercancia}
                       onChange={(v) =>
-                        handleArrayChange("paso7", "mercancias", i, "bultos", v)
+                        handleArrayChange("paso7", "mercancias", i, "ClaseMercancia", v)
                       }
                     />
                     <TextField
-                      label="Peso Bruto"
-                      value={merc.pesoBruto?.toString()}
+                      label="País de origen"
+                      value={merc.PaisMercancia}
                       onChange={(v) =>
-                        handleArrayChange("paso7", "mercancias", i, "pesoBruto", v)
+                        handleArrayChange("paso7", "mercancias", i, "PaisMercancia", v)
                       }
                     />
                     <TextField
-                      label="Valor"
-                      value={merc.valor?.toString()}
+                      label="Peso bruto (kg)"
+                      value={merc.PesoMercancia?.toString()}
                       onChange={(v) =>
-                        handleArrayChange("paso7", "mercancias", i, "valor", v)
+                        handleArrayChange("paso7", "mercancias", i, "PesoMercancia", v)
                       }
                     />
                   </div>
@@ -442,33 +534,33 @@ export function DucaPreviewForm({
               <h3>Paso 8: Documentos Adjuntos</h3>
             </header>
             <div className="grid">
-              {["cartaporte", "facturas", "manifiestos", "MBL", "HBL"].map((docType) => {
-                const docs = localData.paso8?.[docType];
+              {DOCUMENT_BLOCKS.map((documento) => {
+                const docs = localData.paso8?.[documento.key];
                 if (!docs || docs.length === 0) return null;
                 return (
-                  <div key={docType} className="subcard">
-                    <h4 style={{ textTransform: "capitalize" }}>{docType}</h4>
+                  <div key={documento.key} className="subcard">
+                    <h4>{documento.title}</h4>
                     {docs.map((doc, i: number) => (
                       <div key={i} className="grid cols-3" style={{ padding: 0 }}>
                         <TextField
-                          label="Nombre Documento"
-                          value={doc.nombreArchivo || doc.nombreDocumento}
+                          label="Documento"
+                          value={doc[documento.nombre]}
                           onChange={(v) =>
-                            handleArrayChange("paso8", docType, i, "nombreArchivo", v)
+                            handleArrayChange("paso8", documento.key, i, documento.nombre, v)
                           }
                         />
                         <TextField
-                          label="Tipo Documento"
-                          value={doc.tipoArchivo || doc.tipoDocumento}
+                          label="Tipo de documento"
+                          value={doc[documento.tipo]}
                           onChange={(v) =>
-                            handleArrayChange("paso8", docType, i, "tipoArchivo", v)
+                            handleArrayChange("paso8", documento.key, i, documento.tipo, v)
                           }
                         />
                         <TextField
-                          label="No. de Documento"
-                          value={doc.numeroDocumento}
+                          label="No. de documento"
+                          value={doc[documento.numero]}
                           onChange={(v) =>
-                            handleArrayChange("paso8", docType, i, "numeroDocumento", v)
+                            handleArrayChange("paso8", documento.key, i, documento.numero, v)
                           }
                         />
                       </div>
@@ -487,47 +579,42 @@ export function DucaPreviewForm({
             </header>
             <div className="grid cols-2">
               <TextField
-                label="Equipamiento"
-                value={localData.paso9?.equipamiento}
-                onChange={(v) => handleChange(["paso9", "equipamiento"], v)}
+                label="Equipamiento:"
+                value={localData.paso9?.TipoEquipamiento}
+                onChange={(v) => handleChange(["paso9", "TipoEquipamiento"], v)}
               />
               <TextField
-                label="Tipo de carga"
-                value={localData.paso9?.tipoCarga}
-                onChange={(v) => handleChange(["paso9", "tipoCarga"], v)}
+                label="Tipo de carga:"
+                value={localData.paso9?.TipoCarga}
+                onChange={(v) => handleChange(["paso9", "TipoCarga"], v)}
               />
               <TextField
-                label="Identificación del remolque (Chasis)"
-                value={localData.paso9?.remolque?.chasis}
-                onChange={(v) => handleChange(["paso9", "remolque", "chasis"], v)}
+                label="Identificación del remolque o semiremolque:"
+                value={localData.paso9?.PlacaChasis}
+                onChange={(v) => handleChange(["paso9", "PlacaChasis"], v)}
               />
               <TextField
-                label="Nacionalidad del remolque"
-                value={localData.paso9?.remolque?.nacionalidad}
-                onChange={(v) => handleChange(["paso9", "remolque", "nacionalidad"], v)}
+                label="Nacionalidad del remolque o semirremolque:"
+                value={localData.paso9?.PaisChasis}
+                onChange={(v) => handleChange(["paso9", "PaisChasis"], v)}
               />
               <div className="span-all grid cols-3" style={{ padding: 0 }}>
                 <TextField
-                  label="Número de contenedor"
-                  value={localData.paso9?.contenedor?.numero}
-                  onChange={(v) => handleChange(["paso9", "contenedor", "numero"], v)}
+                  label="Número de identificación del contenedor:"
+                  value={localData.paso9?.NumeroContenedor}
+                  onChange={(v) => handleChange(["paso9", "NumeroContenedor"], v)}
                 />
                 <TextField
-                  label="Tipo contenedor"
-                  value={localData.paso9?.contenedor?.tipo}
-                  onChange={(v) => handleChange(["paso9", "contenedor", "tipo"], v)}
-                />
-                <TextField
-                  label="Tamaño contenedor"
-                  value={localData.paso9?.contenedor?.tamano}
-                  onChange={(v) => handleChange(["paso9", "contenedor", "tamano"], v)}
+                  label="Tamaño del equipamiento:"
+                  value={localData.paso9?.TamañoContenedor}
+                  onChange={(v) => handleChange(["paso9", "TamañoContenedor"], v)}
                 />
               </div>
               <div className="span-all">
                 <TextField
-                  label="Dispositivo de seguridad (Marchamo)"
-                  value={localData.paso9?.marchamo}
-                  onChange={(v) => handleChange(["paso9", "marchamo"], v)}
+                  label="Número de dispositivo de seguridad:"
+                  value={localData.paso9?.MarchamoSat}
+                  onChange={(v) => handleChange(["paso9", "MarchamoSat"], v)}
                 />
               </div>
             </div>

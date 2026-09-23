@@ -30,6 +30,7 @@ type MicroservicePayload = {
 const microserviceUrl =
   process.env.EXTRACTION_MICROSERVICE_URL ||
   "http://127.0.0.1:8001/api/v1/extract";
+const microserviceApiKey = process.env.EXTRACTION_MICROSERVICE_API_KEY;
 
 type GmailPart = {
   filename?: string | null;
@@ -261,6 +262,9 @@ export async function POST(request: NextRequest) {
       microserviceResponse = await fetch(microserviceUrl, {
         method: "POST",
         body: microserviceForm,
+        headers: microserviceApiKey
+          ? { "X-API-Key": microserviceApiKey }
+          : undefined,
         signal: controller.signal,
       });
     } finally {

@@ -8,17 +8,13 @@ import { TextField } from "@/components/duca-t/fields/TextField";
 import { useDucaFormStore } from "@/store/duca-form-store";
 import type { EquipamientoData } from "@/types/duca";
 
-const TIPOS_EQUIPO = [
+const TIPOS_EQUIPAMIENTO = [
   { label: "Contenedor", value: "Contenedor" },
   { label: "Remolque", value: "Remolque" },
 ];
 const TIPOS_CARGA = [
   { label: "Contenerizada", value: "Contenerizada" },
   { label: "Suelto", value: "Suelto" },
-];
-const TIPOS_CONTENEDOR = [
-  { label: "Contenedor high-cube", value: "high-cube" },
-  { label: "Contenedor estándar", value: "estandar" },
 ];
 const TAMANOS = [
   { label: "45G1", value: "45G1" },
@@ -31,26 +27,24 @@ const NACIONALIDADES = [
 ];
 
 const emptyDraft: EquipamientoData = {
-  tipoEquipo: "",
-  tipoCarga: "",
-  identificacionRemolque: "",
-  numeroDispositivoSeguridad: "",
-  tipoContenedor: "",
-  tamanoEquipamiento: "",
-  numeroIdentificacionContenedor: "",
-  nacionalidadRemolque: "",
+  TipoEquipamiento: "",
+  TipoCarga: "",
+  PlacaChasis: "",
+  MarchamoSat: "",
+  TamañoContenedor: "",
+  NumeroContenedor: "",
+  PaisChasis: "",
 };
 
 export default function Paso9EquipamientoPage() {
   const equipamientos = useDucaFormStore((s) => s.equipamientos);
   const addEquipamiento = useDucaFormStore((s) => s.addEquipamiento);
   const removeEquipamiento = useDucaFormStore((s) => s.removeEquipamiento);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [draft, setDraft] = useState<EquipamientoData>(emptyDraft);
 
   const handleSave = () => {
-    if (!draft.tipoEquipo || !draft.tipoCarga) return;
+    if (!draft.TipoEquipamiento || !draft.TipoCarga) return;
     addEquipamiento(draft);
     setDraft(emptyDraft);
     setIsModalOpen(false);
@@ -76,27 +70,21 @@ export default function Paso9EquipamientoPage() {
             <thead className="bg-surface-container-low">
               <tr>
                 <th className="p-3 border-b border-r border-outline-variant w-12 text-body-sm">#</th>
-                <th className="p-3 border-b border-r border-outline-variant text-body-sm">Equipamiento</th>
-                <th className="p-3 border-b border-r border-outline-variant text-body-sm">Tipo de carga</th>
+                <th className="p-3 border-b border-r border-outline-variant text-body-sm">Equipamiento:</th>
+                <th className="p-3 border-b border-r border-outline-variant text-body-sm">Tipo de carga:</th>
                 <th className="p-3 border-b border-r border-outline-variant text-body-sm">
-                  Identificación del remolque
-                </th>
-                <th className="p-3 border-b border-r border-outline-variant text-body-sm">
-                  Tipo de contenedor
+                  Identificación del remolque o semiremolque:
                 </th>
                 <th className="p-3 border-b border-outline-variant w-12 text-center text-body-sm" />
               </tr>
             </thead>
             <tbody>
-              {equipamientos.map((eq, i) => (
+              {equipamientos.map((equipamiento, i) => (
                 <tr key={i} className="border-t border-outline-variant">
                   <td className="p-3 border-r border-outline-variant text-body-sm">{i + 1}</td>
-                  <td className="p-3 border-r border-outline-variant text-body-sm">{eq.tipoEquipo}</td>
-                  <td className="p-3 border-r border-outline-variant text-body-sm">{eq.tipoCarga}</td>
-                  <td className="p-3 border-r border-outline-variant text-body-sm">
-                    {eq.identificacionRemolque}
-                  </td>
-                  <td className="p-3 border-r border-outline-variant text-body-sm">{eq.tipoContenedor}</td>
+                  <td className="p-3 border-r border-outline-variant text-body-sm">{equipamiento.TipoEquipamiento}</td>
+                  <td className="p-3 border-r border-outline-variant text-body-sm">{equipamiento.TipoCarga}</td>
+                  <td className="p-3 border-r border-outline-variant text-body-sm">{equipamiento.PlacaChasis}</td>
                   <td className="p-3 text-center">
                     <button
                       type="button"
@@ -110,7 +98,7 @@ export default function Paso9EquipamientoPage() {
               ))}
               {equipamientos.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-on-surface-variant text-body-sm">
+                  <td colSpan={5} className="p-4 text-center text-on-surface-variant text-body-sm">
                     Aún no hay equipamiento agregado.
                   </td>
                 </tr>
@@ -123,7 +111,6 @@ export default function Paso9EquipamientoPage() {
         <StepActions stepId={9} onValidate={isValid} />
       </div>
 
-      {/* Modal: Agregar remolque/contenedor */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
@@ -135,55 +122,48 @@ export default function Paso9EquipamientoPage() {
 
             <form className="px-8 py-6 flex flex-col gap-4 overflow-y-auto">
               <SelectField
-                label="Equipamiento"
+                label="Equipamiento:"
                 required
-                value={draft.tipoEquipo}
-                onChange={(v) => setDraft((d) => ({ ...d, tipoEquipo: v }))}
-                options={TIPOS_EQUIPO}
+                value={draft.TipoEquipamiento}
+                onChange={(v) => setDraft((d) => ({ ...d, TipoEquipamiento: v }))}
+                options={TIPOS_EQUIPAMIENTO}
               />
               <SelectField
-                label="Tipo de carga"
+                label="Tipo de carga:"
                 required
-                value={draft.tipoCarga}
-                onChange={(v) => setDraft((d) => ({ ...d, tipoCarga: v }))}
+                value={draft.TipoCarga}
+                onChange={(v) => setDraft((d) => ({ ...d, TipoCarga: v }))}
                 options={TIPOS_CARGA}
               />
               <TextField
-                label="Identificación del remolque o semiremolque"
-                value={draft.identificacionRemolque}
-                onChange={(v) => setDraft((d) => ({ ...d, identificacionRemolque: v }))}
+                label="Identificación del remolque o semiremolque:"
+                value={draft.PlacaChasis}
+                onChange={(v) => setDraft((d) => ({ ...d, PlacaChasis: v }))}
               />
               <TextField
-                label="Número de dispositivo de seguridad"
-                value={draft.numeroDispositivoSeguridad}
-                onChange={(v) => setDraft((d) => ({ ...d, numeroDispositivoSeguridad: v }))}
+                label="Número de dispositivo de seguridad:"
+                value={draft.MarchamoSat}
+                onChange={(v) => setDraft((d) => ({ ...d, MarchamoSat: v }))}
                 helperText="(Si la unidad de transporte puede ser precintada, el número de dispositivo de seguridad es requerido o puede ser consignado por la autoridad aduanera en la aduana de partida)"
               />
               <SelectField
-                label="Tipo de contenedor"
+                label="Tamaño del equipamiento:"
                 required
-                value={draft.tipoContenedor}
-                onChange={(v) => setDraft((d) => ({ ...d, tipoContenedor: v }))}
-                options={TIPOS_CONTENEDOR}
-              />
-              <SelectField
-                label="Tamaño del equipamiento"
-                required
-                value={draft.tamanoEquipamiento}
-                onChange={(v) => setDraft((d) => ({ ...d, tamanoEquipamiento: v }))}
+                value={draft.TamañoContenedor}
+                onChange={(v) => setDraft((d) => ({ ...d, TamañoContenedor: v }))}
                 options={TAMANOS}
               />
               <TextField
-                label="Número de identificación del contenedor"
+                label="Número de identificación del contenedor:"
                 required
-                value={draft.numeroIdentificacionContenedor}
-                onChange={(v) => setDraft((d) => ({ ...d, numeroIdentificacionContenedor: v }))}
+                value={draft.NumeroContenedor}
+                onChange={(v) => setDraft((d) => ({ ...d, NumeroContenedor: v }))}
                 helperText="(Si su carga es contenerizada, debe ingresar este campo)"
               />
               <SelectField
-                label="Nacionalidad del remolque o semirremolque"
-                value={draft.nacionalidadRemolque}
-                onChange={(v) => setDraft((d) => ({ ...d, nacionalidadRemolque: v }))}
+                label="Nacionalidad del remolque o semirremolque:"
+                value={draft.PaisChasis}
+                onChange={(v) => setDraft((d) => ({ ...d, PaisChasis: v }))}
                 options={NACIONALIDADES}
               />
             </form>

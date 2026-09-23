@@ -1,23 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { FormShell } from "@/components/duca-t/FormShell";
 import { StepActions } from "@/components/duca-t/StepActions";
 import { SelectField } from "@/components/duca-t/fields/SelectField";
 import { TextField } from "@/components/duca-t/fields/TextField";
 import { useDucaFormStore } from "@/store/duca-form-store";
-import type { MercanciaData } from "@/types/duca";
+import type { GastosData, MercanciaData } from "@/types/duca";
 
-const CLASES_BULTOS = [{ label: "Caja", value: "Caja" }, { label: "Pallet", value: "Pallet" }];
-const PAISES_ORIGEN = [{ label: "Guatemala", value: "Guatemala" }];
+const CLASES_MERCANCIA = [
+  { label: "Caja", value: "Caja" },
+  { label: "Pallet", value: "Pallet" },
+];
+const PAISES_MERCANCIA = [{ label: "Guatemala", value: "Guatemala" }];
 
 const emptyDraft: MercanciaData = {
-  numeroMercancia: "",
-  descripcion: "",
-  bultos: "",
-  claseBultos: "",
-  paisOrigen: "",
-  pesoBruto: "",
+  PartidaArancelaria: "",
+  DescripcionMercancia: "",
+  CantidadMercancia: "",
+  ClaseMercancia: "",
+  PaisMercancia: "",
+  PesoMercancia: "",
 };
 
 export default function Paso7MercanciasPage() {
@@ -26,21 +29,28 @@ export default function Paso7MercanciasPage() {
   const removeMercancia = useDucaFormStore((s) => s.removeMercancia);
   const gastos = useDucaFormStore((s) => s.gastos);
   const updateField = useDucaFormStore((s) => s.updateField);
-
   const [draft, setDraft] = useState<MercanciaData>(emptyDraft);
 
-  const valorAduanaTotal = useMemo(() => {
-    const transporte = Number(gastos.transporte) || 0;
-    const seguro = Number(gastos.seguro) || 0;
-    const otros = Number(gastos.otros) || 0;
-    const valorTransaccion = Number(gastos.transporte === "" ? 0 : 0); // valor transacción se maneja aparte abajo
-    return transporte + seguro + otros + valorTransaccion;
-  }, [gastos]);
+  const calculateValorTotal = (gastosActuales: GastosData) =>
+    (Number(gastosActuales.ValorFOB) || 0) +
+    (Number(gastosActuales.GastosTransporte) || 0) +
+    (Number(gastosActuales.GastosSeguro) || 0) +
+    (Number(gastosActuales.OtrosGastos) || 0);
+
+  const updateGasto = (key: keyof GastosData, value: string) => {
+    const next = { ...gastos, [key]: value };
+    const ValorTotal = calculateValorTotal(next);
+    updateField("gastos", { ...next, ValorTotal });
+  };
 
   const handleAdd = () => {
-    if (!draft.descripcion || !draft.bultos) return;
+    if (!draft.DescripcionMercancia || !draft.CantidadMercancia) return;
     addMercancia(draft);
     setDraft(emptyDraft);
+  };
+
+  const handleRemove = (index: number) => {
+    removeMercancia(index);
   };
 
   const isValid = () => mercancias.length > 0;
@@ -48,47 +58,50 @@ export default function Paso7MercanciasPage() {
   return (
     <FormShell currentStepId={7}>
       <div className="col-span-12 flex flex-col gap-6">
-        {/* Formulario para agregar una mercancía */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-outline-variant rounded bg-surface-container-lowest">
-          <TextField
-            label="Mercancía (partida arancelaria)"
-            required
-            value={draft.numeroMercancia ?? ""}
-            onChange={(v) => setDraft((d) => ({ ...d, numeroMercancia: v }))}
-          />
-          <TextField
-            label="Descripción"
-            required
-            value={draft.descripcion ?? ""}
-            onChange={(v) => setDraft((d) => ({ ...d, descripcion: v }))}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border border-outline-variant rounded bg-surface-container-lowest">
+          <div className="md:col-span-2">
+            <TextField
+              label="Mercancía"
+              required
+              value={draft.PartidaArancelaria ?? ""}
+              onChange={(v) => setDraft((d) => ({ ...d, PartidaArancelaria: v }))}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <TextField
+              label="Descripción"
+              required
+              value={draft.DescripcionMercancia ?? ""}
+              onChange={(v) => setDraft((d) => ({ ...d, DescripcionMercancia: v }))}
+            />
+          </div>
           <TextField
             label="Cantidad de bultos"
             required
-            value={String(draft.bultos ?? "")}
-            onChange={(v) => setDraft((d) => ({ ...d, bultos: v }))}
+            value={String(draft.CantidadMercancia ?? "")}
+            onChange={(v) => setDraft((d) => ({ ...d, CantidadMercancia: v }))}
           />
           <SelectField
             label="Clase de bultos"
             required
-            value={draft.claseBultos ?? ""}
-            onChange={(v) => setDraft((d) => ({ ...d, claseBultos: v }))}
-            options={CLASES_BULTOS}
+            value={draft.ClaseMercancia ?? ""}
+            onChange={(v) => setDraft((d) => ({ ...d, ClaseMercancia: v }))}
+            options={CLASES_MERCANCIA}
           />
           <SelectField
             label="País de origen"
             required
-            value={draft.paisOrigen ?? ""}
-            onChange={(v) => setDraft((d) => ({ ...d, paisOrigen: v }))}
-            options={PAISES_ORIGEN}
+            value={draft.PaisMercancia ?? ""}
+            onChange={(v) => setDraft((d) => ({ ...d, PaisMercancia: v }))}
+            options={PAISES_MERCANCIA}
           />
           <TextField
             label="Peso bruto (kg)"
             required
-            value={String(draft.pesoBruto ?? "")}
-            onChange={(v) => setDraft((d) => ({ ...d, pesoBruto: v }))}
+            value={String(draft.PesoMercancia ?? "")}
+            onChange={(v) => setDraft((d) => ({ ...d, PesoMercancia: v }))}
           />
-          <div className="md:col-span-3 flex justify-end">
+          <div className="md:col-span-4 flex justify-end">
             <button
               type="button"
               onClick={handleAdd}
@@ -99,7 +112,6 @@ export default function Paso7MercanciasPage() {
           </div>
         </div>
 
-        {/* Tabla de mercancías agregadas */}
         <div className="overflow-x-auto border border-outline-variant rounded">
           <table className="w-full text-left">
             <thead className="bg-surface-container-low">
@@ -108,24 +120,24 @@ export default function Paso7MercanciasPage() {
                 <th className="p-2 border-r border-outline-variant text-body-sm">Mercancía</th>
                 <th className="p-2 border-r border-outline-variant w-40 text-body-sm">País de origen</th>
                 <th className="p-2 border-r border-outline-variant w-32 text-body-sm">Clase de bultos</th>
-                <th className="p-2 border-r border-outline-variant w-24 text-right text-body-sm">No. bultos</th>
+                <th className="p-2 border-r border-outline-variant w-24 text-right text-body-sm">Cantidad de bultos</th>
                 <th className="p-2 text-right w-32 text-body-sm">Peso bruto (kg)</th>
                 <th className="p-2 w-12" />
               </tr>
             </thead>
             <tbody>
-              {mercancias.map((m, i) => (
+              {mercancias.map((mercancia, i) => (
                 <tr key={i} className="border-t border-outline-variant">
                   <td className="p-2 border-r border-outline-variant text-body-sm">{i + 1}</td>
-                  <td className="p-2 border-r border-outline-variant text-body-sm">{m.descripcion}</td>
-                  <td className="p-2 border-r border-outline-variant text-body-sm">{m.paisOrigen}</td>
-                  <td className="p-2 border-r border-outline-variant text-body-sm">{m.claseBultos}</td>
-                  <td className="p-2 border-r border-outline-variant text-body-sm text-right">{m.bultos}</td>
-                  <td className="p-2 text-body-sm text-right">{m.pesoBruto}</td>
+                  <td className="p-2 border-r border-outline-variant text-body-sm">{mercancia.DescripcionMercancia}</td>
+                  <td className="p-2 border-r border-outline-variant text-body-sm">{mercancia.PaisMercancia}</td>
+                  <td className="p-2 border-r border-outline-variant text-body-sm">{mercancia.ClaseMercancia}</td>
+                  <td className="p-2 border-r border-outline-variant text-body-sm text-right">{mercancia.CantidadMercancia}</td>
+                  <td className="p-2 text-body-sm text-right">{mercancia.PesoMercancia}</td>
                   <td className="p-2 text-center">
                     <button
                       type="button"
-                      onClick={() => removeMercancia(i)}
+                      onClick={() => handleRemove(i)}
                       className="text-error text-body-sm hover:underline"
                     >
                       Quitar
@@ -144,28 +156,33 @@ export default function Paso7MercanciasPage() {
           </table>
         </div>
 
-        {/* Gastos */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TextField
+            label="Valor transacción"
+            required
+            value={String(gastos.ValorFOB ?? "")}
+            onChange={(v) => updateGasto("ValorFOB", v)}
+          />
           <TextField
             label="Gastos de transporte"
             required
-            value={String(gastos.transporte ?? "")}
-            onChange={(v) => updateField("gastos", { transporte: v })}
+            value={String(gastos.GastosTransporte ?? "")}
+            onChange={(v) => updateGasto("GastosTransporte", v)}
           />
           <TextField
             label="Gastos de seguro"
-            value={String(gastos.seguro ?? "")}
-            onChange={(v) => updateField("gastos", { seguro: v })}
+            value={String(gastos.GastosSeguro ?? "")}
+            onChange={(v) => updateGasto("GastosSeguro", v)}
           />
           <TextField
-            label="Otros gastos"
+            label="Otros Gastos"
             required
-            value={String(gastos.otros ?? "")}
-            onChange={(v) => updateField("gastos", { otros: v })}
+            value={String(gastos.OtrosGastos ?? "")}
+            onChange={(v) => updateGasto("OtrosGastos", v)}
           />
           <TextField
             label="Valor en aduana total"
-            value={String(valorAduanaTotal)}
+            value={String(calculateValorTotal(gastos))}
             onChange={() => {}}
             disabled
           />
