@@ -25,6 +25,7 @@ export async function GET(request: Request) {
 
     // Guardamos los tokens en un archivo temporal seguro para el MVP
     const tokenPath = path.join(process.cwd(), "tmp", "gmail_tokens.json");
+    fs.mkdirSync(path.dirname(tokenPath), { recursive: true });
     fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
 
     // Redirige de vuelta al panel principal de tu app

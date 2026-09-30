@@ -117,71 +117,102 @@ export async function POST(request: NextRequest) {
       oauth2Client.setCredentials(tokens);
       const gmail = google.gmail({ version: "v1", auth: oauth2Client });
 
-      const msg = await gmail.users.messages.get({ userId: "me", id: mailId });
-      const payload = msg.data.payload;
-      if (!payload) {
-        return NextResponse.json(
-          {
-            ok: false,
-            message: "Gmail devolvió un mensaje sin contenido.",
-            error: {
-              codigo: "GMAIL_MESSAGE_ERR",
-              mensaje: "No se pudo leer el contenido del correo.",
+      try {
+        const msg = await gmail.users.messages.get({
+          userId: "me",
+          id: mailId,
+        });
+        const payload = msg.data.payload;
+        if (!payload) {
+          return NextResponse.json(
+            {
+              ok: false,
+              message: "Gmail devolvió un mensaje sin contenido.",
+              error: {
+                codigo: "GMAIL_MESSAGE_ERR",
+                mensaje: "No se pudo leer el contenido del correo.",
+              },
             },
-          },
-          { status: 502 },
-        );
-      }
-
-      emailBodyText = getEmailBody(payload);
-
-      function getAttachmentParts(part: GmailPart): GmailPart[] {
-        let atts: GmailPart[] = [];
-        if (part.filename && part.body?.attachmentId) {
-          atts.push(part);
+            { status: 502 },
+          );
         }
-        if (part.parts) {
-          for (const p of part.parts) {
-            atts = atts.concat(getAttachmentParts(p));
+
+        emailBodyText = getEmailBody(payload);
+
+        function getAttachmentParts(part: GmailPart): GmailPart[] {
+          let atts: GmailPart[] = [];
+          if (part.filename && part.body?.attachmentId) {
+            atts.push(part);
+          }
+          if (part.parts) {
+            for (const p of part.parts) {
+              atts = atts.concat(getAttachmentParts(p));
+            }
+          }
+          return atts;
+        }
+
+        const attachmentParts = getAttachmentParts(payload);
+
+        for (const [attachmentIndex, part] of attachmentParts.entries()) {
+          if (
+            selectedAttachmentIndexes &&
+            !selectedAttachmentIndexes.has(attachmentIndex)
+          ) {
+            continue;
+          }
+          const nombreArchivo = String(part.filename || "");
+          const attachmentId = part.body?.attachmentId;
+          if (!attachmentId) {
+            continue;
+          }
+          const extension = path.extname(nombreArchivo).toLowerCase();
+          if ([".doc", ".docx"].includes(extension)) {
+            continue;
+          }
+          if (![".pdf", ".xls", ".xlsx"].includes(extension)) {
+            continue;
+          }
+          const attachRes = await gmail.users.messages.attachments.get({
+            userId: "me",
+            messageId: mailId,
+            id: attachmentId,
+          });
+          if (attachRes.data.data) {
+            const buffer = Buffer.from(attachRes.data.data, "base64");
+            let mimeType = part.mimeType || "application/pdf";
+            if (part.filename?.toLowerCase().endsWith(".pdf"))
+              mimeType = "application/pdf";
+            fileBuffers.push({ mimeType, data: buffer });
+            archivoNombres.push(nombreArchivo);
           }
         }
-        return atts;
-      }
-
-      const attachmentParts = getAttachmentParts(payload);
-
-      for (const [attachmentIndex, part] of attachmentParts.entries()) {
-        if (
-          selectedAttachmentIndexes &&
-          !selectedAttachmentIndexes.has(attachmentIndex)
-        ) {
-          continue;
+      } catch (error) {
+        const e = error as {
+          code?: number | string;
+          message?: string;
+          response?: { status?: number };
+        };
+        const code = Number(e.code ?? e.response?.status);
+        const esAuth =
+          code === 401 ||
+          /invalid_grant|invalid_client|unauthorized_client/i.test(
+            e.message ?? "",
+          );
+        if (esAuth) {
+          return NextResponse.json(
+            {
+              ok: false,
+              message: "La autorización de Gmail expiró. Vuelve a conectar Gmail.",
+              error: {
+                codigo: "GMAIL_AUTH_ERR",
+                mensaje: "La autorización de Gmail expiró. Vuelve a conectar Gmail.",
+              },
+            },
+            { status: 401 },
+          );
         }
-        const nombreArchivo = String(part.filename || "");
-        const attachmentId = part.body?.attachmentId;
-        if (!attachmentId) {
-          continue;
-        }
-        const extension = path.extname(nombreArchivo).toLowerCase();
-        if ([".doc", ".docx"].includes(extension)) {
-          continue;
-        }
-        if (![".pdf", ".xls", ".xlsx"].includes(extension)) {
-          continue;
-        }
-        const attachRes = await gmail.users.messages.attachments.get({
-          userId: "me",
-          messageId: mailId,
-          id: attachmentId,
-        });
-        if (attachRes.data.data) {
-          const buffer = Buffer.from(attachRes.data.data, "base64");
-          let mimeType = part.mimeType || "application/pdf";
-          if (part.filename?.toLowerCase().endsWith(".pdf"))
-            mimeType = "application/pdf";
-          fileBuffers.push({ mimeType, data: buffer });
-          archivoNombres.push(nombreArchivo);
-        }
+        throw error;
       }
 
       if (fileBuffers.length === 0) {

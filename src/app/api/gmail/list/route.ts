@@ -60,7 +60,7 @@ export async function GET() {
     const response = await gmail.users.messages.list({
       userId: "me",
       maxResults: 30,
-      q: "has:attachment",
+      q: "in:inbox newer_than:30d",
     });
 
     const messages = response.data.messages || [];
@@ -123,21 +123,24 @@ export async function GET() {
       data: detailedMessages,
     });
   } catch (error) {
-    const status =
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as { code?: number }).code === 401
-        ? 401
-        : 502;
+    const e = error as {
+      code?: number | string;
+      message?: string;
+      response?: { status?: number };
+    };
+    const code = Number(e.code ?? e.response?.status);
+    const esAuth =
+      code === 401 ||
+      /invalid_grant|invalid_client|unauthorized_client/i.test(e.message ?? "");
+    const status = esAuth ? 401 : 502;
     console.error("Error al consultar Gmail:", error);
     return NextResponse.json(
       {
         ok: false,
         error: {
-          codigo: status === 401 ? "GMAIL_AUTH_ERR" : "GMAIL_UNAVAILABLE_ERR",
+          codigo: esAuth ? "GMAIL_AUTH_ERR" : "GMAIL_UNAVAILABLE_ERR",
           mensaje:
-            status === 401
+            esAuth
               ? "La autorización de Gmail expiró. Vuelve a conectar Gmail."
               : "No se pudo consultar Gmail. Verifica la conexión de red y la autorización OAuth.",
         },

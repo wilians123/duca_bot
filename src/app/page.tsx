@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { AuditEntry, createAuditEntry, initialAuditEntry } from "@/lib/audit";
 import { DucaPreviewForm, DucaDataState } from "@/components/operator/DucaPreviewForm";
 import { ActivityConsole } from "@/components/operator/ActivityConsole";
@@ -153,6 +153,39 @@ function CloseIcon() {
   );
 }
 
+function GmailSkeleton() {
+  return (
+    <div className="gmail-skeleton" aria-label="Cargando correos" aria-busy="true">
+      <div className="gmail-skeleton-list">
+        {Array.from({ length: 5 }, (_, index) => (
+          <div className="gmail-skeleton-row" key={index}>
+            <span className="gmail-skeleton-avatar" />
+            <span className="gmail-skeleton-copy">
+              <span className="gmail-skeleton-line gmail-skeleton-line-wide" />
+              <span className="gmail-skeleton-line gmail-skeleton-line-medium" />
+              <span className="gmail-skeleton-line gmail-skeleton-line-short" />
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="gmail-skeleton-reader">
+        <span className="gmail-skeleton-line gmail-skeleton-title" />
+        <span className="gmail-skeleton-line gmail-skeleton-line-wide" />
+        <span className="gmail-skeleton-line gmail-skeleton-line-medium" />
+        <div className="gmail-skeleton-message">
+          <span className="gmail-skeleton-avatar" />
+          <span className="gmail-skeleton-copy">
+            <span className="gmail-skeleton-line gmail-skeleton-line-wide" />
+            <span className="gmail-skeleton-line gmail-skeleton-line-wide" />
+            <span className="gmail-skeleton-line gmail-skeleton-line-medium" />
+            <span className="gmail-skeleton-line gmail-skeleton-line-short" />
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([initialAuditEntry]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -169,14 +202,23 @@ export default function Home() {
   >([]);
 
   // Estados para Gmail
-  const [isConnectingGmail, setIsConnectingGmail] = useState(false);
   const [gmailMessages, setGmailMessages] = useState<GmailMessage[]>([]);
   const [selectedMailId, setSelectedMailId] = useState("");
   const [selectedAttachmentIndexes, setSelectedAttachmentIndexes] = useState<
     Record<string, number[]>
   >({});
   const [isLoadingMails, setIsLoadingMails] = useState(false);
+  const [hasLoadedGmail, setHasLoadedGmail] = useState(false);
+  const [gmailFlowStarted, setGmailFlowStarted] = useState(false);
+  const [mailLimit, setMailLimit] = useState(30);
   const [mailFilterQuery, setMailFilterQuery] = useState("");
+
+  useEffect(() => {
+    if (window.sessionStorage.getItem("gmail-flow-started") === "true") {
+      const restoreFlow = window.setTimeout(() => setGmailFlowStarted(true), 0);
+      return () => window.clearTimeout(restoreFlow);
+    }
+  }, []);
 
   const canExtract = useMemo(
     () =>
@@ -210,12 +252,15 @@ export default function Home() {
   };
 
   const connectGmail = () => {
-    setIsConnectingGmail(true);
+    setGmailFlowStarted(true);
+    window.sessionStorage.setItem("gmail-flow-started", "true");
     pushLog("Redirigiendo a Google para autorizar acceso a Gmail...");
     window.location.href = "/api/auth/gmail";
   };
 
   const fetchGmailMessages = async () => {
+    setGmailFlowStarted(true);
+    setHasLoadedGmail(false);
     setIsLoadingMails(true);
     pushLog("Consultando bandeja de entrada de Gmail...");
 
@@ -246,6 +291,7 @@ export default function Home() {
       pushLog(mensaje, "error");
     } finally {
       setIsLoadingMails(false);
+      setHasLoadedGmail(true);
     }
   };
 
@@ -388,6 +434,8 @@ export default function Home() {
       msg.cuerpo.toLowerCase().includes(q)
     );
   });
+  const visibleMessages = filteredMessages.slice(0, mailLimit);
+  const showGmailMailbox = gmailFlowStarted || gmailMessages.length > 0;
 
   return (
     <main className="view">
@@ -399,25 +447,6 @@ export default function Home() {
             Conecta Gmail, elige el correo con los documentos del embarque y extrae los
             datos para armar la DUCA-T con IA.
           </p>
-        </div>
-        <div className="head-actions">
-          <button
-            type="button"
-            onClick={fetchGmailMessages}
-            disabled={isLoadingMails}
-            className="btn btn-ghost"
-          >
-            {isLoadingMails ? "Cargando..." : "Actualizar bandeja"}
-          </button>
-          <button
-            type="button"
-            onClick={connectGmail}
-            disabled={isConnectingGmail}
-            className="btn btn-primary"
-          >
-            <MailIcon />
-            <span>{isConnectingGmail ? "Conectando..." : "Conectar Gmail"}</span>
-          </button>
         </div>
       </div>
 
@@ -466,7 +495,7 @@ export default function Home() {
       </div>
 
       {/* BANDEJA TIPO GMAIL */}
-      {gmailMessages.length === 0 ? (
+      {!showGmailMailbox ? (
         <section className="card p-8 text-center" style={{ minHeight: 280, display: "grid", placeContent: "center", gap: "1rem" }}>
           <div className="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "var(--primary-soft)", color: "var(--primary)" }}>
             <MailIcon />
@@ -483,9 +512,6 @@ export default function Home() {
               <MailIcon />
               <span>Conectar cuenta de Gmail</span>
             </button>
-            <button type="button" onClick={fetchGmailMessages} disabled={isLoadingMails} className="btn btn-ghost">
-              {isLoadingMails ? "Cargando..." : "Cargar correos"}
-            </button>
           </div>
         </section>
       ) : (
@@ -500,15 +526,49 @@ export default function Home() {
                 onChange={(e) => setMailFilterQuery(e.target.value)}
               />
             </div>
+            <label className="mail-limit">
+              <span className="sr-only">Cantidad de correos</span>
+              <select
+                className="input"
+                value={mailLimit}
+                onChange={(e) => setMailLimit(Number(e.target.value))}
+                aria-label="Cantidad de correos"
+              >
+                <option value={10}>10 correos</option>
+                <option value={20}>20 correos</option>
+                <option value={30}>30 correos</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={fetchGmailMessages}
+              disabled={isLoadingMails}
+              className="btn btn-ghost btn-sm"
+            >
+              {isLoadingMails ? "Actualizando..." : "Actualizar bandeja"}
+            </button>
+            {(!hasLoadedGmail || isLoadingMails) && (
+              <button
+                type="button"
+                onClick={fetchGmailMessages}
+                disabled={isLoadingMails}
+                className="btn btn-primary btn-sm"
+              >
+                {isLoadingMails ? "Cargando..." : "Cargar correos"}
+              </button>
+            )}
             <div className="seg">
               <button type="button" aria-pressed="true">Todos</button>
               <button type="button" aria-pressed="false">Con adjuntos</button>
             </div>
             <span className="muted text-xs ml-auto">
-              {filteredMessages.length} conversación{filteredMessages.length !== 1 ? "es" : ""}
+              {visibleMessages.length} conversación{visibleMessages.length !== 1 ? "es" : ""}
             </span>
           </div>
 
+          {!hasLoadedGmail || isLoadingMails ? (
+            <GmailSkeleton />
+          ) : (
           <div className="mail-panes">
             <div className="mail-list">
               {filteredMessages.length === 0 ? (
@@ -517,7 +577,7 @@ export default function Home() {
                   <p>Prueba con otro término de búsqueda.</p>
                 </div>
               ) : (
-                filteredMessages.map((msg) => {
+                visibleMessages.map((msg) => {
                   const isSelected = selectedMailId === msg.id;
                   const count = msg.archivosAdjuntos.length;
                   return (
@@ -666,6 +726,7 @@ export default function Home() {
               )}
             </div>
           </div>
+          )}
         </section>
       )}
 
