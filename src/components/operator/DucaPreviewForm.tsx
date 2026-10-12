@@ -119,7 +119,7 @@ const STEP_TITLES = [
 
 const DOCUMENT_BLOCKS = [
   {
-    key: "porte",
+    key: "cartaporte",
     title: "Carta de porte",
     nombre: "NombreDocumentoPorte",
     tipo: "TipoDocumentoPorte",
@@ -535,36 +535,40 @@ export function DucaPreviewForm({
             </header>
             <div className="grid">
               {DOCUMENT_BLOCKS.map((documento) => {
-                const docs = localData.paso8?.[documento.key];
-                if (!docs || docs.length === 0) return null;
+                const category = localData.paso8?.[documento.key];
+                const docs = Array.isArray(category) ? category : [];
                 return (
                   <div key={documento.key} className="subcard">
                     <h4>{documento.title}</h4>
-                    {docs.map((doc, i: number) => (
-                      <div key={i} className="grid cols-3" style={{ padding: 0 }}>
-                        <TextField
-                          label="Documento"
-                          value={doc[documento.nombre]}
-                          onChange={(v) =>
-                            handleArrayChange("paso8", documento.key, i, documento.nombre, v)
-                          }
-                        />
-                        <TextField
-                          label="Tipo de documento"
-                          value={doc[documento.tipo]}
-                          onChange={(v) =>
-                            handleArrayChange("paso8", documento.key, i, documento.tipo, v)
-                          }
-                        />
-                        <TextField
-                          label="No. de documento"
-                          value={doc[documento.numero]}
-                          onChange={(v) =>
-                            handleArrayChange("paso8", documento.key, i, documento.numero, v)
-                          }
-                        />
-                      </div>
-                    ))}
+                    {docs.length === 0 ? (
+                      <p>Sin documentos</p>
+                    ) : (
+                      docs.map((doc, i: number) => (
+                        <div key={i} className="grid cols-3" style={{ padding: 0 }}>
+                          <TextField
+                            label="Documento"
+                            value={doc?.[documento.nombre]}
+                            onChange={(v) =>
+                              handleArrayChange("paso8", documento.key, i, documento.nombre, v)
+                            }
+                          />
+                          <TextField
+                            label="Tipo de documento"
+                            value={doc?.[documento.tipo]}
+                            onChange={(v) =>
+                              handleArrayChange("paso8", documento.key, i, documento.tipo, v)
+                            }
+                          />
+                          <TextField
+                            label="No. de documento"
+                            value={doc?.[documento.numero]}
+                            onChange={(v) =>
+                              handleArrayChange("paso8", documento.key, i, documento.numero, v)
+                            }
+                          />
+                        </div>
+                      ))
+                    )}
                   </div>
                 );
               })}
