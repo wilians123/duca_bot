@@ -1,0 +1,87 @@
+{
+  "hasDiscrepancies": true,
+  "discrepancyDetails": "{\"campo\": \"BUQUE\", \"valorCorreo\": null, \"documentoOrigenCorreo\": \"Cuerpo del correo\", \"valorDocumento\": \"LITTLE SYMPHONY\", \"documentoOrigenDocumento\": \"YUK020N19.pdf\"}; {\"campo\": \"VIAJE\", \"valorCorreo\": null, \"documentoOrigenCorreo\": \"Cuerpo del correo\", \"valorDocumento\": \"YUK020N19\", \"documentoOrigenDocumento\": \"YUK020N19.pdf\"}; {\"campo\": \"FECHA\", \"valorCorreo\": null, \"documentoOrigenCorreo\": \"Cuerpo del correo\", \"valorDocumento\": \"12-10-2026\", \"documentoOrigenDocumento\": \"YUK020N19.pdf\"}",
+  "paso1": {
+    "PaisProcedencia": "GUATEMALA",
+    "AduanaDestino": "ALM.GRAL.DEPOSITO OCCIDENTE (APOPA) - 83 - ADUANA PORTUARIA",
+    "Observaciones": "MBL: NAM8722259 BUQUE LITTLE SYMPHONY VIAJE YUK020N19 FECHA 12-10-2026. EN TRANSITO A ALM.GRAL.DEPOSITO OCCIDENTE (APOPA) CODIGO 83. AGENTE DESPACHADOR CMA CGM GASTOS DE SEGURO $1.00, GASTOS DE TRANSPORTE $1.00 UNICAMENTE PARA EFECTOS DEL REGISTRO ADUANERO.",
+    "PaisDestino": "EL SALVADOR",
+    "AduanaInicio": "ADUANA SANTO TOMAS DE CASTILLA - ST - ADUANA PORTUARIA"
+  },
+  "paso2": {
+    "NumeroIdentificacionExportador": "S/N",
+    "NombreExportador": "DECO ART",
+    "TipoIdentificacionExportador": "NÚMERO DE IDENTIFICACIÓN TRIBUTARIA",
+    "PaisExportador": "ESTADOS UNIDOS",
+    "DomicilioExportador": "PO Box 297 Stanford, KY 40484 USA"
+  },
+  "paso3": {
+    "TipoIdentificacionImportador": "NÚMERO DE IDENTIFICACIÓN TRIBUTARIA",
+    "NumeroIdentificacionImportador": "06141103211055",
+    "PaisImportador": "EL SALVADOR",
+    "NombreImportador": "SOLUCIONES LOGISTICAS DE CENTROAMERICA S.A, DE C.V",
+    "DomicilioImportador": "AV. BALBOA, EDIFICIO PH ART & YOO PARQUE INDUSTRIAL ORION BLOQUE A LOCAL 2 CIUDAD ARCE, LA LIBERTAD, El Salvador"
+  },
+  "paso4": {
+    "AduanaPaso": "ADUANA LA ERMITA LE ADUANA FRONTERA"
+  },
+  "paso5": {
+    "CodigoTransportista": null,
+    "PlacaTransporte": null
+  },
+  "paso6": {
+    "LicenciaConductor": null
+  },
+  "paso7": {
+    "mercancias": [
+      {
+        "PesoMercancia": 19428.595,
+        "PartidaArancelaria": "3213.90.00.00",
+        "ClaseMercancia": "PK",
+        "PaisMercancia": "US",
+        "DescripcionMercancia": "PINTURA ACRILICA AZUL CIELO",
+        "CantidadMercancia": 21
+      }
+    ],
+    "gastos": {
+      "GastosTransporte": null,
+      "GastosSeguro": null,
+      "OtrosGastos": null,
+      "ValorFOB": 50816.16,
+      "ValorTotal": null
+    }
+  },
+  "paso8": {
+    "cartaporte": [],
+    "facturas": [
+      {
+        "NombreDocumentoFactura": "INV (11).pdf",
+        "TipoDocumentoFactura": "FACTURA COMERCIAL",
+        "NumeroDocumentoFactura": "D370427"
+      }
+    ],
+    "manifiestos": [
+      {
+        "NombreDocumentoManifiesto": "YUK020N19.pdf",
+        "TipoDocumentoManifiesto": "MANIFIESTO DE CARGA",
+        "NumeroDocumentoManifiesto": null
+      }
+    ],
+    "otros": [
+      {
+        "NombreDocumentoBL": "NAM8722259 (1).pdf",
+        "TipoDocumentoManifiestoBL": "Conocimiento de embarque máster",
+        "NumeroDocumentoManifiestoBL": "NAM8722259"
+      }
+    ]
+  },
+  "paso9": {
+    "PlacaChasis": null,
+    "PaisChasis": null,
+    "TipoCarga": "CONTENERIZADA",
+    "TipoEquipamiento": "CONTENEDOR",
+    "NumeroContenedor": "SEGU6953570",
+    "MarchamoSat": null,
+    "TamañoContenedor": "40"
+  }
+}

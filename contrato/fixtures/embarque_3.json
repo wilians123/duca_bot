@@ -1,0 +1,127 @@
+{
+  "hasDiscrepancies": true,
+  "discrepancyDetails": "{\"campo\": \"BUQUE\", \"valores\": [{\"valor\": \"A. OBELIX\", \"fuente\": \"NAM8689177-MN.pdf (VESSEL)\"}, {\"valor\": \"CMA CGM KAILAS\", \"fuente\": \"NAM8689177-OBL.pdf (VESSEL)\"}]}; {\"campo\": \"VIAJE\", \"valores\": [{\"valor\": \"YUK000N19\", \"fuente\": \"NAM8689177-MN.pdf (VOYAGE)\"}, {\"valor\": \"0UAO3S1MA\", \"fuente\": \"NAM8689177-OBL.pdf (VOYAGE NUMBER)\"}]}",
+  "paso1": {
+    "AduanaDestino": "ALM.GRAL.DEPOSITO OCCIDENTE (APOPA) - 83 - ADUANA PORTUARIA",
+    "Observaciones": "MBL: NAM8689177 BUQUE A. OBELIX VIAJE YUK000N19 FECHA 21-SEP-26. EN TRANSITO A AGDOSA RANSA, APOPA CODIGO 83. AGENTE DESPACHADOR CMA CGM GASTOS DE SEGURO $1.00, GASTOS DE TRANSPORTE $1.00 UNICAMENTE PARA EFECTOS DEL REGISTRO ADUANERO.",
+    "PaisProcedencia": "GUATEMALA",
+    "PaisDestino": "EL SALVADOR",
+    "AduanaInicio": "ADUANA SANTO TOMAS DE CASTILLA - ST - ADUANA PORTUARIA"
+  },
+  "paso2": {
+    "TipoIdentificacionExportador": "NÚMERO DE IDENTIFICACIÓN TRIBUTARIA",
+    "NumeroIdentificacionExportador": "S/N",
+    "PaisExportador": "ESTADOS UNIDOS",
+    "NombreExportador": "B & C LUXURY AUTO LTD",
+    "DomicilioExportador": "104 LISTER AVE NEWARK US"
+  },
+  "paso3": {
+    "NombreImportador": "B&C LUXURY AUTO SA DE CV",
+    "PaisImportador": "EL SALVADOR",
+    "NumeroIdentificacionImportador": "06141111201069",
+    "TipoIdentificacionImportador": "NÚMERO DE IDENTIFICACIÓN TRIBUTARIA",
+    "DomicilioImportador": "CALLE MANUEL ENRIQUE ARAUJO CENTRO COMERCIAL LA MASCOTA LOCAL 5 SAN SALVADOR SV"
+  },
+  "paso4": {
+    "AduanaPaso": "ADUANA LA ERMITA LE ADUANA FRONTERA"
+  },
+  "paso5": {
+    "CodigoTransportista": null,
+    "PlacaTransporte": null
+  },
+  "paso6": {
+    "LicenciaConductor": null
+  },
+  "paso7": {
+    "mercancias": [
+      {
+        "PesoMercancia": "1378.01",
+        "ClaseMercancia": "VN",
+        "DescripcionMercancia": "VIN:3N1AB8CV2MY207279 2021 NISSAN SENTRA RED",
+        "PaisMercancia": "ESTADOS UNIDOS",
+        "PartidaArancelaria": "87032369910",
+        "CantidadMercancia": "1"
+      },
+      {
+        "PesoMercancia": "1349.89",
+        "ClaseMercancia": "VN",
+        "DescripcionMercancia": "VIN:5NPD84LFXJH389400 2018 HYUNDAI ELANTRA BLACK",
+        "PaisMercancia": "ESTADOS UNIDOS",
+        "PartidaArancelaria": "87032369910",
+        "CantidadMercancia": "1"
+      },
+      {
+        "PesoMercancia": "995.18",
+        "ClaseMercancia": "VN",
+        "DescripcionMercancia": "VIN:ML32F4FJ8LHF06198 2020 MITSUBISHI MIRAGE G4 MAROON",
+        "PaisMercancia": "ESTADOS UNIDOS",
+        "PartidaArancelaria": "87032259910",
+        "CantidadMercancia": "1"
+      },
+      {
+        "PesoMercancia": "980.21",
+        "ClaseMercancia": "VN",
+        "DescripcionMercancia": "VIN:ML32FUFJ9RHF04520 2024 MITSUBISHI MIRAGE G4 RED",
+        "PaisMercancia": "ESTADOS UNIDOS",
+        "PartidaArancelaria": "87032259910",
+        "CantidadMercancia": "1"
+      },
+      {
+        "PesoMercancia": "1397.06",
+        "ClaseMercancia": "VN",
+        "DescripcionMercancia": "VIN:3N1AB8BV1NY232158 2022 NISSAN SENTRA GRAY",
+        "PaisMercancia": "ESTADOS UNIDOS",
+        "PartidaArancelaria": "87032369910",
+        "CantidadMercancia": "1"
+      },
+      {
+        "PesoMercancia": "1290.02",
+        "ClaseMercancia": "VN",
+        "DescripcionMercancia": "VIN:5NPD84LF2LH582952 2020 HYUNDAI ELANTRA SILVER",
+        "PaisMercancia": "ESTADOS UNIDOS",
+        "PartidaArancelaria": "87032369910",
+        "CantidadMercancia": "1"
+      }
+    ],
+    "gastos": {
+      "ValorTotal": null,
+      "ValorFOB": "14535.66",
+      "GastosTransporte": null,
+      "GastosSeguro": null,
+      "OtrosGastos": null
+    }
+  },
+  "paso8": {
+    "cartaporte": [],
+    "facturas": [
+      {
+        "NombreDocumentoFactura": "Consol Facturas (52).pdf",
+        "TipoDocumentoFactura": "FACTURA COMERCIAL",
+        "NumeroDocumentoFactura": "27237452/57957556/27290163/55757916/62971466/27277013"
+      }
+    ],
+    "manifiestos": [
+      {
+        "NombreDocumentoManifiesto": "NAM8689177-MN.pdf",
+        "TipoDocumentoManifiesto": "MANIFIESTO DE CARGA",
+        "NumeroDocumentoManifiesto": "CC126001086"
+      }
+    ],
+    "otros": [
+      {
+        "NombreDocumentoBL": "NAM8689177-OBL.pdf",
+        "TipoDocumentoManifiestoBL": "Conocimiento de embarque máster",
+        "NumeroDocumentoManifiestoBL": "NAM8689177"
+      }
+    ]
+  },
+  "paso9": {
+    "TipoCarga": "CONTENERIZADA",
+    "NumeroContenedor": "TDRU9580107",
+    "MarchamoSat": "SAT-GT 732668",
+    "PaisChasis": null,
+    "TipoEquipamiento": "CONTENEDOR",
+    "TamañoContenedor": "45",
+    "PlacaChasis": null
+  }
+}

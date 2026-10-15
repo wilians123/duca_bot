@@ -2,6 +2,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../../firebase/client";
 
 export type RegistroCorreo = {
+  userId?: string;
   idCorreo: string;
   asunto: string;
   remitente: string;

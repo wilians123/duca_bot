@@ -1,5 +1,6 @@
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
+import { authenticateFirebaseRequest, getGmailConnection } from "@/lib/gmail-user";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,25 +66,37 @@ function getEmailBody(payload: GmailPart): string {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get("file");
+    const uploadedFiles = formData.getAll("files");
+    const legacyFile = formData.get("file");
+    const localFiles = uploadedFiles.length > 0
+      ? uploadedFiles
+      : legacyFile === null ? [] : [legacyFile];
     const mailId = formData.get("mailId") as string | null;
+    if (mailId && localFiles.length > 0) {
+      return NextResponse.json(
+        { ok: false, error: { codigo: "REQUEST_INVALID_ERR", mensaje: "Usa archivos locales o adjuntos de Gmail, no ambos." } },
+        { status: 400 },
+      );
+    }
     const selectedAttachmentIndexesValue = formData.get(
       "selectedAttachmentIndexes",
     );
     let selectedAttachmentIndexes: Set<number> | null = null;
     if (typeof selectedAttachmentIndexesValue === "string") {
       try {
-        const parsed = JSON.parse(selectedAttachmentIndexesValue);
-        if (
-          Array.isArray(parsed) &&
-          parsed.every(
-            (index) => Number.isInteger(index) && index >= 0,
-          )
-        ) {
-          selectedAttachmentIndexes = new Set(parsed);
+        const parsed: unknown = JSON.parse(selectedAttachmentIndexesValue);
+        if (!Array.isArray(parsed) || parsed.length > 15 || !parsed.every((index) => Number.isInteger(index) && index >= 0)) {
+          return NextResponse.json(
+            { ok: false, error: { codigo: "REQUEST_INVALID_ERR", mensaje: "Selecciona hasta 15 adjuntos válidos." } },
+            { status: 400 },
+          );
         }
+        selectedAttachmentIndexes = new Set(parsed as number[]);
       } catch {
-        selectedAttachmentIndexes = null;
+        return NextResponse.json(
+          { ok: false, error: { codigo: "REQUEST_INVALID_ERR", mensaje: "Los índices de adjuntos no son JSON válido." } },
+          { status: 400 },
+        );
       }
     }
 
@@ -92,10 +105,16 @@ export async function POST(request: NextRequest) {
     let emailBodyText = "";
 
     if (mailId) {
+      const auth = await authenticateFirebaseRequest(request);
+      if (!auth.identity) {
+        return NextResponse.json(
+          { ok: false, error: { codigo: "AUTH_REQUIRED", mensaje: auth.error?.message } },
+          { status: auth.error?.status || 401 },
+        );
+      }
       const { google } = await import("googleapis");
-      const fs = await import("fs");
-      const tokenPath = path.join(process.cwd(), "tmp", "gmail_tokens.json");
-      if (!fs.existsSync(tokenPath)) {
+      const connection = getGmailConnection(auth.identity.uid);
+      if (!connection) {
         return NextResponse.json(
           {
             ok: false,
@@ -108,13 +127,12 @@ export async function POST(request: NextRequest) {
           { status: 401 },
         );
       }
-      const tokens = JSON.parse(fs.readFileSync(tokenPath, "utf-8"));
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
         process.env.GMAIL_REDIRECT_URI,
       );
-      oauth2Client.setCredentials(tokens);
+      oauth2Client.setCredentials(connection.tokens);
       const gmail = google.gmail({ version: "v1", auth: oauth2Client });
 
       try {
@@ -228,40 +246,61 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
       }
-    } else if (file instanceof File) {
-      const extension = path.extname(file.name).toLowerCase();
-      if ([".doc", ".docx"].includes(extension)) {
+    } else if (localFiles.length > 0) {
+      if (localFiles.length > 15) {
         return NextResponse.json(
           {
             ok: false,
-            message: "Los documentos Word están prohibidos.",
+            message: "El lote supera el máximo permitido.",
             error: {
-              codigo: "ARCHIVO_NO_PERMITIDO_ERR",
-              mensaje: "Los documentos Word están prohibidos.",
+              codigo: "FILE_LIMIT_ERR",
+              mensaje: "Se permiten hasta 15 archivos por lote.",
             },
           },
           { status: 400 },
         );
       }
-      if (![".pdf", ".xls", ".xlsx"].includes(extension)) {
+      if (!localFiles.every((entry) => entry instanceof File)) {
         return NextResponse.json(
           {
             ok: false,
             message: "Tipo de archivo inválido.",
             error: {
               codigo: "ARCHIVO_NO_PERMITIDO_ERR",
-              mensaje: "Solo se permiten PDF, XLS y XLSX.",
+              mensaje: "Todos los archivos deben ser PDF, XLS o XLSX.",
             },
           },
           { status: 400 },
         );
       }
-      const buffer = Buffer.from(await file.arrayBuffer());
-      let mimeType = file.type;
-      if (!mimeType && file.name.endsWith(".pdf")) mimeType = "application/pdf";
-
-      fileBuffers.push({ mimeType, data: buffer });
-      archivoNombres.push(file.name);
+      for (const entry of localFiles) {
+        const file = entry as File;
+        const extension = path.extname(file.name).toLowerCase();
+        if (![".pdf", ".xls", ".xlsx"].includes(extension)) {
+          return NextResponse.json(
+            {
+              ok: false,
+              message: "Tipo de archivo inválido.",
+              error: {
+                codigo: "ARCHIVO_NO_PERMITIDO_ERR",
+                mensaje: "Solo se permiten PDF, XLS y XLSX.",
+              },
+            },
+            { status: 400 },
+          );
+        }
+        const buffer = Buffer.from(await file.arrayBuffer());
+        let mimeType = file.type;
+        if (!mimeType) {
+          mimeType = extension === ".pdf"
+            ? "application/pdf"
+            : extension === ".xls"
+              ? "application/vnd.ms-excel"
+              : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        }
+        fileBuffers.push({ mimeType, data: buffer });
+        archivoNombres.push(file.name);
+      }
     } else {
       return NextResponse.json(
         {

@@ -1,0 +1,87 @@
+{
+  "hasDiscrepancies": false,
+  "discrepancyDetails": null,
+  "paso1": {
+    "AduanaDestino": "TERRESTRE ANGUIATÚ - 08 - ADUANA PORTUARIA",
+    "Observaciones": "MBL: BGA0529993 BUQUE LITTLE SYMPHONY VIAJE 0YKDLN1MA FECHA 02-09-2026. EN TRANSITO A FRONTERA ANGUIATU CODIGO 08. AGENTE DESPACHADOR CMA CGM GASTOS DE SEGURO $1.00, GASTOS DE TRANSPORTE $1.00 UNICAMENTE PARA EFECTOS DEL REGISTRO ADUANERO.",
+    "PaisProcedencia": "GUATEMALA",
+    "AduanaInicio": "ADUANA SANTO TOMAS DE CASTILLA - ST - ADUANA PORTUARIA",
+    "PaisDestino": "EL SALVADOR"
+  },
+  "paso2": {
+    "PaisExportador": "COLOMBIA",
+    "TipoIdentificacionExportador": "NÚMERO DE IDENTIFICACIÓN TRIBUTARIA",
+    "NumeroIdentificacionExportador": "890302609-0",
+    "DomicilioExportador": "CRA 7 No. 34-120 CALI, COLOMBIA",
+    "NombreExportador": "SONOCO DE COLOMBIA LTDA"
+  },
+  "paso3": {
+    "NombreImportador": "FAMPRO TISSUE EL SALVADOR LTDA DE CV",
+    "TipoIdentificacionImportador": "NÚMERO DE IDENTIFICACIÓN TRIBUTARIA",
+    "PaisImportador": "EL SALVADOR",
+    "DomicilioImportador": "KM 32 1/2 CARRETERA A SAN JUAN OPICO SITIO DEL NINO, LA LIBERTAD, LA LIBERTAD",
+    "NumeroIdentificacionImportador": "0623291025104"
+  },
+  "paso4": {
+    "AduanaPaso": "ADUANA LA ERMITA LE ADUANA FRONTERA"
+  },
+  "paso5": {
+    "CodigoTransportista": null,
+    "PlacaTransporte": null
+  },
+  "paso6": {
+    "LicenciaConductor": null
+  },
+  "paso7": {
+    "mercancias": [
+      {
+        "ClaseMercancia": "PK",
+        "PaisMercancia": "COLOMBIA",
+        "PesoMercancia": 6606.08,
+        "CantidadMercancia": 208,
+        "PartidaArancelaria": "48229000",
+        "DescripcionMercancia": "TUBOS DE CARTON"
+      }
+    ],
+    "gastos": {
+      "ValorFOB": 15040.38,
+      "ValorTotal": null,
+      "GastosSeguro": 0,
+      "OtrosGastos": null,
+      "GastosTransporte": 0
+    }
+  },
+  "paso8": {
+    "cartaporte": [],
+    "facturas": [
+      {
+        "NombreDocumentoFactura": "001 FACTURA CGT3870 (1).pdf",
+        "TipoDocumentoFactura": "FACTURA COMERCIAL",
+        "NumeroDocumentoFactura": "CGT3870"
+      }
+    ],
+    "manifiestos": [
+      {
+        "NombreDocumentoManifiesto": "026 MANIFIESTO BGA9993 (1).pdf",
+        "TipoDocumentoManifiesto": "MANIFIESTO DE CARGA",
+        "NumeroDocumentoManifiesto": null
+      }
+    ],
+    "otros": [
+      {
+        "NombreDocumentoBL": "020 BL BGA0529993 (1).pdf",
+        "TipoDocumentoManifiestoBL": "Conocimiento de embarque máster",
+        "NumeroDocumentoManifiestoBL": "BGA0529993"
+      }
+    ]
+  },
+  "paso9": {
+    "TipoEquipamiento": "CONTENEDOR",
+    "MarchamoSat": null,
+    "PlacaChasis": null,
+    "TipoCarga": "CONTENERIZADA",
+    "NumeroContenedor": "FFAU1602875",
+    "TamañoContenedor": "40",
+    "PaisChasis": null
+  }
+}

@@ -1,8 +1,7 @@
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { guardarCorreo } from "@/lib/firebase-correo";
+import { authenticateFirebaseRequest, getGmailConnection } from "@/lib/gmail-user";
 
 type GmailPart = {
   mimeType?: string | null;
@@ -32,10 +31,15 @@ function extraerNombresAdjuntos(parte: GmailPart): string[] {
   return nombres.concat((parte.parts || []).flatMap(extraerNombresAdjuntos));
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const auth = await authenticateFirebaseRequest(request);
+  if (!auth.identity) {
+    return NextResponse.json({ ok: false, error: { codigo: "AUTH_REQUIRED", mensaje: auth.error?.message } }, { status: auth.error?.status || 401 });
+  }
+
   try {
-    const tokenPath = path.join(process.cwd(), "tmp", "gmail_tokens.json");
-    if (!fs.existsSync(tokenPath)) {
+    const connection = getGmailConnection(auth.identity.uid);
+    if (!connection) {
       return NextResponse.json(
         {
           ok: false,
@@ -48,13 +52,12 @@ export async function GET() {
       );
     }
 
-    const tokens = JSON.parse(fs.readFileSync(tokenPath, "utf-8"));
     const oauth2Client = new google.auth.OAuth2(
       process.env.GMAIL_CLIENT_ID,
       process.env.GMAIL_CLIENT_SECRET,
       process.env.GMAIL_REDIRECT_URI,
     );
-    oauth2Client.setCredentials(tokens);
+    oauth2Client.setCredentials(connection.tokens);
 
     const gmail = google.gmail({ version: "v1", auth: oauth2Client });
     const response = await gmail.users.messages.list({
@@ -102,6 +105,7 @@ export async function GET() {
 
       try {
         await guardarCorreo({
+          userId: auth.identity.uid,
           idCorreo: msg.id,
           asunto: subject,
           remitente: from,

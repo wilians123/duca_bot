@@ -8,7 +8,7 @@ export type AuditEntry = {
 export const initialAuditEntry: AuditEntry = {
   id: "initial",
   level: "info",
-  message: "Sistema listo. Inicie con la autenticacion SIECA.",
+  message: "Sistema listo. Cargue los documentos para iniciar el trámite.",
   time: "inicio",
 };
 

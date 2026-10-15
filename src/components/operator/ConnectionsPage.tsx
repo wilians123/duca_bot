@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 function MailIcon() {
   return (
@@ -11,24 +12,47 @@ function MailIcon() {
   );
 }
 
-function ShieldIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={20} height={20}>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-
 export function ConnectionsPage() {
-  const [siecaStatus, setSiecaStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [gmailStatus, setGmailStatus] = useState<"loading" | "connected" | "disconnected" | "error">("loading");
+  const [gmailEmail, setGmailEmail] = useState("");
+  const { firebaseUser } = useAuth();
 
-  const testSiecaConnection = async () => {
-    setSiecaStatus("loading");
+  const getToken = useCallback(() => firebaseUser?.getIdToken(), [firebaseUser]);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const token = await getToken();
+        const response = await fetch("/api/auth/gmail", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          cache: "no-store",
+        });
+        const payload = await response.json() as { connected?: boolean; email?: string | null };
+        if (!active) return;
+        if (!response.ok) throw new Error("No se pudo consultar la conexión con Gmail.");
+        setGmailStatus(payload.connected ? "connected" : "disconnected");
+        setGmailEmail(payload.email || "");
+      } catch {
+        if (active) setGmailStatus("error");
+      }
+    })();
+    return () => { active = false; };
+  }, [getToken]);
+
+  const connectGmail = async () => {
     try {
-      const response = await fetch("/api/auth", { method: "POST" });
-      setSiecaStatus(response.ok ? "success" : "error");
+      const token = await getToken();
+      const response = await fetch("/api/auth/gmail", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        cache: "no-store",
+      });
+      const payload = await response.json() as { url?: string; error?: string };
+      if (!response.ok || !payload.url) throw new Error(payload.error || "No se pudo iniciar la conexión con Gmail.");
+      window.location.assign(payload.url);
     } catch {
-      setSiecaStatus("error");
+      setGmailStatus("error");
     }
   };
 
@@ -37,7 +61,7 @@ export function ConnectionsPage() {
       <div className="page-head">
         <div>
           <h1>Conexiones</h1>
-          <p>Las dos cuentas que el sistema necesita para trabajar por ti.</p>
+          <p>Conexiones necesarias para recibir y procesar la documentación.</p>
         </div>
       </div>
 
@@ -51,55 +75,29 @@ export function ConnectionsPage() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-base">Gmail</h2>
-                  <span className="tag tag-neutral">Sin conectar</span>
+                  <span className={`tag ${gmailStatus === "connected" ? "tag-ok" : "tag-neutral"}`}>
+                    {gmailStatus === "loading" ? "Verificando..." : gmailStatus === "connected" ? "Conectado" : "Sin conectar"}
+                  </span>
                 </div>
-                <p className="mono muted mt-1 text-xs">Cuenta de operaciones</p>
+                <p className="mono muted mt-1 text-xs">{gmailEmail || "Cuenta de operaciones"}</p>
                 <p className="muted mt-2 text-sm">
                   Lectura de correos y descarga de adjuntos de los últimos 7 días.
                 </p>
               </div>
             </div>
-            <a href="/api/auth/gmail" className="btn btn-ghost btn-block mt-4">
-              Conectar Gmail
-            </a>
+            {gmailStatus === "connected" ? (
+              <button type="button" className="btn btn-ghost btn-block mt-4" disabled>
+                Gmail vinculado a este usuario
+              </button>
+            ) : (
+              <button type="button" className="btn btn-ghost btn-block mt-4" onClick={connectGmail} disabled={gmailStatus === "loading"}>
+                Conectar Gmail
+              </button>
+            )}
+            {gmailStatus === "error" && <p className="mt-2 text-sm text-[var(--danger)]" role="alert">No se pudo consultar Gmail. Recarga la página e inténtalo de nuevo.</p>}
           </div>
         </section>
 
-        <section className="card">
-          <div className="card-body">
-            <div className="flex items-start gap-3">
-              <span className="grid h-[42px] w-[42px] flex-none place-items-center rounded-xl bg-[var(--teal-soft)] text-[var(--teal)]">
-                <ShieldIcon />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-base">SIECA</h2>
-                  <span className={`tag ${siecaStatus === "success" ? "tag-ok" : "tag-neutral"}`}>
-                    <span className="dot" />
-                    {siecaStatus === "success" ? "Conectado" : "Sin conectar"}
-                  </span>
-                </div>
-                <p className="mono muted mt-1 text-xs">Sesión del portal DUCA-T</p>
-                <p className="muted mt-2 text-sm">
-                  Se abre al final del trámite para firmar y enviar la declaración. La sesión dura 30 minutos.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="btn btn-ghost btn-block mt-4"
-              onClick={testSiecaConnection}
-              disabled={siecaStatus === "loading"}
-            >
-              {siecaStatus === "loading" ? "Abriendo sesión..." : "Probar sesión"}
-            </button>
-            {siecaStatus === "error" && (
-              <p className="mt-2 text-sm text-[var(--danger)]" role="alert">
-                No se pudo completar la conexión con SIECA.
-              </p>
-            )}
-          </div>
-        </section>
       </div>
     </main>
   );

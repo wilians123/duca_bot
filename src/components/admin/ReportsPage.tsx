@@ -8,12 +8,21 @@ type ProcessedCase = {
   id: string;
   userId?: string;
   reference?: string;
+  numeroDuca?: string;
   cliente?: string;
   ruta?: string;
   status?: string;
   tokens?: number;
   createdAt?: string;
 };
+
+type ReportUser = { id: string; name?: string };
+
+function ducaReference(item: ProcessedCase) {
+  return item.status === "Completado"
+    ? item.numeroDuca || "-"
+    : "-";
+}
 
 function DownloadIcon() {
   return (
@@ -35,20 +44,55 @@ function InfoIcon() {
 
 export function ReportsPage() {
   const [cases, setCases] = useState<ProcessedCase[]>([]);
+  const [users, setUsers] = useState<ReportUser[]>([]);
   const [reportDay, setReportDay] = useState(String(new Date().getDate()));
   const [notice, setNotice] = useState("");
 
-  useEffect(
-    () =>
-      onSnapshot(collection(db, "tramites"), (snapshot) =>
-        setCases(
-          snapshot.docs.map(
-            (item) => ({ id: item.id, ...item.data() }) as ProcessedCase,
-          ),
+  useEffect(() => {
+    const unsubscribeCases = onSnapshot(collection(db, "tramites"), (snapshot) => {
+      const next = snapshot.docs.map(
+        (item) => ({ id: item.id, ...item.data() }) as ProcessedCase,
+      );
+      next.sort(
+        (a, b) =>
+          (Date.parse(b.createdAt || "") || 0) -
+          (Date.parse(a.createdAt || "") || 0),
+      );
+      setCases(next);
+    });
+    const unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      setUsers(
+        snapshot.docs.map(
+          (item) => ({ id: item.id, ...item.data() }) as ReportUser,
         ),
-      ),
-    [],
+      );
+    });
+    return () => {
+      unsubscribeCases();
+      unsubscribeUsers();
+    };
+  }, []);
+
+  const usersById = useMemo(
+    () => users.reduce(
+      (result, user) => result.set(user.id, user.name || "Usuario"),
+      new Map<string, string>(),
+    ),
+    [users],
   );
+  const chartYear = new Date().getFullYear();
+  const monthlyCompletions = useMemo(() => {
+    const counts = Array.from({ length: 12 }, () => 0);
+    cases.forEach((item) => {
+      if (item.status !== "Completado" || !item.createdAt) return;
+      const createdAt = new Date(item.createdAt);
+      if (createdAt.getFullYear() === chartYear) {
+        counts[createdAt.getMonth()] += 1;
+      }
+    });
+    return counts;
+  }, [cases, chartYear]);
+  const highestMonthlyCount = Math.max(...monthlyCompletions, 1);
 
   const periodRows = useMemo(() => {
     const now = new Date();
@@ -72,8 +116,8 @@ export function ReportsPage() {
     const csv = [
       headers,
       ...periodRows.map((item) => [
-        item.reference || item.id,
-        item.userId || "—",
+        ducaReference(item),
+        usersById.get(item.userId || "") || "Usuario",
         item.status || "Pendiente",
         String(item.tokens || 0),
         item.createdAt || "",
@@ -106,6 +150,12 @@ export function ReportsPage() {
       return (
         <span className="tag tag-bad">
           <span className="dot" /> Error
+        </span>
+      );
+    if (st === "Cancelado")
+      return (
+        <span className="tag tag-warn">
+          <span className="dot" /> Cancelado
         </span>
       );
     return (
@@ -173,17 +223,27 @@ export function ReportsPage() {
             </div>
 
             <div className="chart mt-5">
-              {[32, 41, 28, 44, 52, 38, 47, periodRows.length || 54].map((v, i) => (
-                <div key={i} className="col">
-                  <i style={{ height: `${(v / 54) * 100}%` }} title={`${v} trámites`} />
+              {monthlyCompletions.map((count, month) => (
+                <div key={month} className="col">
+                  <i
+                    style={{
+                      height: count
+                        ? `${Math.max(4, (count / highestMonthlyCount) * 100)}%`
+                        : "0%",
+                    }}
+                    title={`${count} trámites completados`}
+                    aria-label={`${count} trámites completados`}
+                  />
                   <span>
-                    {["feb", "mar", "abr", "may", "jun", "jul", "ago", "sep"][i]}
+                    {new Intl.DateTimeFormat("es-GT", { month: "short" })
+                      .format(new Date(chartYear, month, 1))
+                      .replace(".", "")}
                   </span>
                 </div>
               ))}
             </div>
             <p className="muted text-xs text-center mt-2">
-              Trámites completados por mes
+              Trámites completados por mes · {chartYear}
             </p>
           </div>
         </section>
@@ -267,9 +327,9 @@ export function ReportsPage() {
                 periodRows.map((item) => (
                   <tr key={item.id}>
                     <td className="mono font-semibold text-xs text-[var(--primary-ink)]">
-                      {item.reference || item.id}
+                      {ducaReference(item)}
                     </td>
-                    <td>{item.userId || "—"}</td>
+                    <td>{usersById.get(item.userId || "") || "Usuario"}</td>
                     <td>{statusBadge(item.status)}</td>
                     <td className="muted whitespace-nowrap text-xs">
                       {item.createdAt

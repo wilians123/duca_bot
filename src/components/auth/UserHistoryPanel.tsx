@@ -8,9 +8,12 @@ import type { UserProfile } from "@/types/auth";
 type HistoryItem = {
   id: string;
   reference?: string;
+  numeroDuca?: string;
+  numeroBL?: string;
+  numeroContenedor?: string;
   cliente?: string;
   ruta?: string;
-  status?: "Pendiente" | "Completado" | "Error";
+  status?: "Pendiente" | "Completado" | "Cancelado" | "Error";
   createdAt?: string;
 };
 
@@ -63,6 +66,11 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
         const next = snapshot.docs.map(
           (item) => ({ id: item.id, ...item.data() }) as HistoryItem,
         );
+        next.sort(
+          (a, b) =>
+            (Date.parse(b.createdAt || "") || 0) -
+            (Date.parse(a.createdAt || "") || 0),
+        );
         setItems(next);
       },
       () => setItems([]),
@@ -72,7 +80,7 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
   const today = new Date().toISOString().slice(0, 10);
   const hoyCount = items.filter((item) => item.createdAt?.startsWith(today)).length;
   const completados = items.filter((item) => item.status === "Completado").length;
-  const pendientes = items.filter((item) => item.status === "Pendiente").length;
+  const cancelados = items.filter((item) => item.status === "Cancelado").length;
   const errores = items.filter((item) => item.status === "Error").length;
 
   const statusBadge = (status?: string) => {
@@ -88,6 +96,12 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
           <span className="dot" /> Error
         </span>
       );
+    if (status === "Cancelado")
+      return (
+        <span className="tag tag-warn">
+          <span className="dot" /> Cancelado
+        </span>
+      );
     return (
       <span className="tag tag-warn">
         <span className="dot" /> Pendiente
@@ -96,7 +110,10 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
   };
 
   const filteredItems = items.filter((item) => {
-    const text = (item.reference || item.id || "").toLowerCase();
+    const text = [item.numeroDuca, item.reference, item.numeroBL, item.numeroContenedor, item.id]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
     const matchesQuery = !searchQuery || text.includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "Todos" || (item.status || "Pendiente") === statusFilter;
@@ -105,11 +122,11 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
 
   const downloadCsv = () => {
     const rows = [
-      ["Referencia", "Cliente", "Ruta", "Fecha", "Estado"],
+      ["Número DUCA", "Número BL", "Contenedor", "Fecha", "Estado"],
       ...filteredItems.map((item) => [
-        item.reference || item.id,
-        item.cliente || "",
-        item.ruta || "",
+        item.numeroDuca || item.reference || item.id,
+        item.numeroBL || "",
+        item.numeroContenedor || "",
         item.createdAt ? new Date(item.createdAt).toLocaleString("es-GT") : "",
         item.status || "Pendiente",
       ]),
@@ -130,7 +147,7 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
       <div className="page-head">
         <div>
           <h1>Historial de trámites</h1>
-          <p>Todas las declaraciones que has procesado. Consulta sus archivos y el resultado del envío.</p>
+          <p>Consulta el número de DUCA, BL, contenedor, fecha y estado de grabación.</p>
         </div>
         <div className="head-actions">
           <button type="button" className="btn btn-ghost" onClick={downloadCsv}>
@@ -160,18 +177,18 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
             </span>
           </div>
           <strong>{completados}</strong>
-          <small>Envíos exitosos</small>
+          <small>Grabaciones finalizadas</small>
         </article>
 
         <article className="metric">
           <div className="top">
-            <span>Pendientes de envío</span>
+            <span>Cancelados</span>
             <span className="ico" style={{ background: "var(--warn-soft)", color: "var(--warn)" }}>
               <ClockIcon />
             </span>
           </div>
-          <strong>{pendientes}</strong>
-          <small>Esperan sesión SIECA</small>
+          <strong>{cancelados}</strong>
+          <small>Grabación cancelada</small>
         </article>
 
         <article className="metric">
@@ -198,7 +215,7 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
               <span>Buscar</span>
               <input
                 className="input"
-                placeholder="Referencia o ID"
+                placeholder="DUCA, BL o contenedor"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -213,6 +230,7 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
                 <option value="Todos">Todos</option>
                 <option value="Completado">Completado</option>
                 <option value="Pendiente">Pendiente</option>
+                <option value="Cancelado">Cancelado</option>
                 <option value="Error">Error</option>
               </select>
             </label>
@@ -223,9 +241,9 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
           <table>
             <thead>
               <tr>
-                <th>Referencia</th>
-                <th>Cliente</th>
-                <th>Ruta</th>
+                <th>Número DUCA</th>
+                <th>Número BL</th>
+                <th>Contenedor</th>
                 <th>Fecha</th>
                 <th>Estado</th>
               </tr>
@@ -241,10 +259,10 @@ export function UserHistoryPanel({ profile }: { profile: UserProfile }) {
                 filteredItems.map((item) => (
                   <tr key={item.id}>
                     <td className="mono font-semibold text-xs text-[var(--primary-ink)]">
-                      {item.reference || item.id}
+                      {item.numeroDuca || item.reference || "—"}
                     </td>
-                    <td>{item.cliente || "—"}</td>
-                    <td className="muted">{item.ruta || "—"}</td>
+                    <td className="mono text-xs">{item.numeroBL || "—"}</td>
+                    <td className="mono text-xs">{item.numeroContenedor || "—"}</td>
                     <td className="muted whitespace-nowrap text-xs">
                       {item.createdAt
                         ? new Date(item.createdAt).toLocaleString("es-GT")

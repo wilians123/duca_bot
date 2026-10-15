@@ -57,7 +57,14 @@ export function LoginCard() {
             DB
           </span>
           <div>
-            <b style={{ display: "block", color: "#fff", fontSize: ".9rem", letterSpacing: ".04em" }}>
+            <b
+              style={{
+                display: "block",
+                color: "#fff",
+                fontSize: ".9rem",
+                letterSpacing: ".04em",
+              }}
+            >
               DUCAS BOT
             </b>
             <small style={{ color: "#A9B6CC", fontSize: ".72rem" }}>
@@ -69,8 +76,8 @@ export function LoginCard() {
         <div>
           <h2>El flujo completo de tu agencia, en un solo lugar.</h2>
           <p>
-            Lee correos de clientes, extrae los documentos de embarque con inteligencia
-            artificial, revisa los datos y radícalos en SIECA.
+            Lee correos de clientes, extrae los documentos de embarque con
+            inteligencia artificial, revisa los datos y radícalos en SIECA.
           </p>
 
           <div className="flowline">
@@ -78,7 +85,7 @@ export function LoginCard() {
               <i>1</i> Conexión a Gmail de operaciones
             </div>
             <div>
-              <i>2</i> Extracción de factura, carta de porte y manifiesto
+              <i>2</i> Extracción de factura, bl y manifiesto
             </div>
             <div>
               <i>3</i> Validación de inconsistencias
@@ -118,11 +125,20 @@ export function LoginCard() {
               >
                 DB
               </span>
-              <b style={{ fontSize: ".88rem", letterSpacing: ".04em" }}>DUCAS BOT</b>
+              <b style={{ fontSize: ".88rem", letterSpacing: ".04em" }}>
+                DUCAS BOT
+              </b>
             </div>
 
             <h1 style={{ fontSize: "1.35rem" }}>Entra a tu cuenta</h1>
-            <p className="muted" style={{ fontSize: ".85rem", marginTop: ".25rem", marginBottom: "1.1rem" }}>
+            <p
+              className="muted"
+              style={{
+                fontSize: ".85rem",
+                marginTop: ".25rem",
+                marginBottom: "1.1rem",
+              }}
+            >
               Usa tus credenciales asignadas para acceder al sistema.
             </p>
 
@@ -156,11 +172,17 @@ export function LoginCard() {
 
               <label className="check" style={{ margin: ".8rem 0" }}>
                 <input type="checkbox" defaultChecked />
-                <span style={{ fontSize: ".82rem" }}>Mantener sesión iniciada</span>
+                <span style={{ fontSize: ".82rem" }}>
+                  Mantener sesión iniciada
+                </span>
               </label>
 
               {error && (
-                <div className="alert alert-warn" role="alert" style={{ padding: ".65rem .85rem", fontSize: ".8rem" }}>
+                <div
+                  className="alert alert-warn"
+                  role="alert"
+                  style={{ padding: ".65rem .85rem", fontSize: ".8rem" }}
+                >
                   <span>{error}</span>
                 </div>
               )}

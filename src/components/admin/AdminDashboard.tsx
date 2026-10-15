@@ -16,19 +16,26 @@ type ProcessedCase = {
   paid?: boolean;
   cost?: number;
   createdAt?: string;
-  reference?: string;
+  numeroDuca?: string;
+  userId?: string;
   cliente?: string;
   ruta?: string;
 };
 
-type UserRecord = { id: string; active?: boolean };
+type UserRecord = { id: string; name?: string; role?: string; active?: boolean };
+
+function ducaReference(item: ProcessedCase) {
+  return item.status === "Completado" ? item.numeroDuca || "-" : "-";
+}
 
 type ProviderUsage = {
   name: string;
   consumed: number;
-  limit: number;
-  paid: boolean;
+  limit?: number;
+  paid?: boolean;
   cost: number;
+  tokenRecords: number;
+  costRecords: number;
 };
 
 function DocIcon() {
@@ -84,9 +91,15 @@ export function AdminDashboard() {
     const unsubscribeCases = onSnapshot(
       collection(db, "tramites"),
       (snapshot) => {
-        setCases(
-          snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as ProcessedCase),
+        const next = snapshot.docs.map(
+          (item) => ({ id: item.id, ...item.data() }) as ProcessedCase,
         );
+        next.sort(
+          (a, b) =>
+            (Date.parse(b.createdAt || "") || 0) -
+            (Date.parse(a.createdAt || "") || 0),
+        );
+        setCases(next);
         setConnectionError("");
       },
       (error) => setConnectionError(error.message),
@@ -107,49 +120,84 @@ export function AdminDashboard() {
     };
   }, []);
 
+  const usersById = useMemo(
+    () => users.reduce(
+      (result, user) => result.set(user.id, user.name || "Usuario"),
+      new Map<string, string>(),
+    ),
+    [users],
+  );
+
   const usage = useMemo<ProviderUsage[]>(() => {
     const grouped = new Map<string, ProviderUsage>();
     cases.forEach((item) => {
-      const name = item.provider || item.ai || item.model || "Gemini 2.5 Flash";
+      const name = item.provider || item.ai || item.model;
+      if (!name) return;
       const current = grouped.get(name) || {
         name,
         consumed: 0,
-        limit: Number(item.tokenLimit || 1_000_000),
-        paid: item.paid === true,
+        limit: undefined,
+        paid: undefined,
         cost: 0,
+        tokenRecords: 0,
+        costRecords: 0,
       };
-      current.consumed += Number(item.tokens || 0);
-      current.cost += Number(item.cost || 0);
-      current.paid = current.paid || item.paid === true;
+      if (typeof item.tokens === "number" && Number.isFinite(item.tokens)) {
+        current.consumed += item.tokens;
+        current.tokenRecords += 1;
+      }
+      if (typeof item.tokenLimit === "number" && Number.isFinite(item.tokenLimit)) {
+        current.limit = item.tokenLimit;
+      }
+      if (typeof item.cost === "number" && Number.isFinite(item.cost)) {
+        current.cost += item.cost;
+        current.costRecords += 1;
+      }
+      if (typeof item.paid === "boolean") current.paid = item.paid;
       grouped.set(name, current);
     });
-    if (grouped.size === 0) {
-      grouped.set("Gemini 2.5 Flash", {
-        name: "Gemini 2.5 Flash",
-        consumed: 642000,
-        limit: 1000000,
-        paid: false,
-        cost: 0,
-      });
-      grouped.set("GPT-4o mini", {
-        name: "GPT-4o mini",
-        consumed: 128400,
-        limit: 250000,
-        paid: true,
-        cost: 18.4,
-      });
-    }
     return [...grouped.values()];
   }, [cases]);
 
   const completed = cases.filter((item) => item.status === "Completado").length;
   const successRate = cases.length
     ? `${Math.round((completed / cases.length) * 100)}%`
-    : "96.8%";
-  const today = new Date().toISOString().slice(0, 10);
-  const todayCases = cases.filter((item) => item.createdAt?.startsWith(today)).length;
-  const activeUsersCount = users.filter((u) => u.active !== false).length || 4;
-  const totalCost = usage.reduce((sum, item) => sum + item.cost, 0);
+    : "—";
+  const dailyActivity = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - index));
+      const count = cases.filter((item) => {
+        if (!item.createdAt) return false;
+        const createdAt = new Date(item.createdAt);
+        return (
+          createdAt.getFullYear() === date.getFullYear() &&
+          createdAt.getMonth() === date.getMonth() &&
+          createdAt.getDate() === date.getDate()
+        );
+      }).length;
+      return {
+        count,
+        label: new Intl.DateTimeFormat("es-GT", { weekday: "short" })
+          .format(date)
+          .replace(".", ""),
+      };
+    });
+  }, [cases]);
+  const todayCases = dailyActivity[dailyActivity.length - 1]?.count || 0;
+  const activeUsersCount = users.filter((u) => u.role === "user" && u.active !== false).length;
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const monthlyCostRecords = cases.filter((item) => {
+    if (typeof item.cost !== "number" || !Number.isFinite(item.cost) || !item.createdAt) return false;
+    const createdAt = new Date(item.createdAt);
+    return createdAt >= monthStart && createdAt < nextMonthStart;
+  });
+  const totalCost = monthlyCostRecords.reduce((sum, item) => sum + (item.cost || 0), 0);
+  const maxDailyCount = Math.max(...dailyActivity.map((item) => item.count), 1);
 
   const statusBadge = (st?: string) => {
     if (st === "Completado")
@@ -162,6 +210,12 @@ export function AdminDashboard() {
       return (
         <span className="tag tag-bad">
           <span className="dot" /> Error
+        </span>
+      );
+    if (st === "Cancelado")
+      return (
+        <span className="tag tag-warn">
+          <span className="dot" /> Cancelado
         </span>
       );
     return (
@@ -205,7 +259,7 @@ export function AdminDashboard() {
               <DocIcon />
             </span>
           </div>
-          <strong>{todayCases || 14}</strong>
+          <strong>{todayCases}</strong>
           <small>Procesados en la jornada</small>
         </article>
 
@@ -217,7 +271,7 @@ export function AdminDashboard() {
             </span>
           </div>
           <strong>{successRate}</strong>
-          <small>Extracciones validadas</small>
+          <small>Completados del total registrado</small>
         </article>
 
         <article className="metric">
@@ -228,7 +282,7 @@ export function AdminDashboard() {
             </span>
           </div>
           <strong>{activeUsersCount}</strong>
-          <small>Cuentas registradas</small>
+          <small>Operadores habilitados</small>
         </article>
 
         <article className="metric">
@@ -238,8 +292,8 @@ export function AdminDashboard() {
               <SparkIcon />
             </span>
           </div>
-          <strong>{totalCost ? `$${totalCost.toFixed(2)}` : "$18.40"}</strong>
-          <small>Gemini y GPT-4o mini</small>
+          <strong>{monthlyCostRecords.length ? `$${totalCost.toFixed(2)}` : "—"}</strong>
+          <small>{monthlyCostRecords.length ? "Costos registrados este mes" : "Sin costos registrados este mes"}</small>
         </article>
       </div>
 
@@ -252,10 +306,18 @@ export function AdminDashboard() {
           </div>
           <div className="card-body">
             <div className="chart">
-              {[8, 11, 6, 14, 9, 12, 15].map((v, i) => (
-                <div key={i} className="col">
-                  <i style={{ height: `${(v / 15) * 100}%` }} title={`${v} trámites`} />
-                  <span>{["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"][i]}</span>
+              {dailyActivity.map((item, index) => (
+                <div key={index} className="col">
+                  <i
+                    style={{
+                      height: item.count
+                        ? `${Math.max(4, (item.count / maxDailyCount) * 100)}%`
+                        : "0%",
+                    }}
+                    title={`${item.count} trámites`}
+                    aria-label={`${item.count} trámites`}
+                  />
+                  <span>{item.label}</span>
                 </div>
               ))}
             </div>
@@ -267,34 +329,48 @@ export function AdminDashboard() {
             <h2>Consumo por modelo</h2>
           </div>
           <div className="card-body space-y-4">
-            {usage.map((item) => {
-              const pct = Math.min(100, Math.round((item.consumed / Math.max(item.limit, 1)) * 100));
+            {usage.length === 0 ? (
+              <p className="muted text-sm">No hay datos de consumo por modelo registrados.</p>
+            ) : usage.map((item) => {
+              const pct = item.tokenRecords > 0 && item.limit && item.limit > 0
+                ? Math.min(100, Math.round((item.consumed / item.limit) * 100))
+                : null;
               return (
                 <div key={item.name}>
                   <div className="flex items-center justify-between gap-2">
                     <b className="text-sm font-semibold">{item.name}</b>
-                    <span className={`tag ${item.paid ? "tag-warn" : "tag-ok"}`}>
-                      {item.paid ? "De pago" : "Gratuita"}
-                    </span>
+                    {typeof item.paid === "boolean" && (
+                      <span className={`tag ${item.paid ? "tag-warn" : "tag-ok"}`}>
+                        {item.paid ? "De pago" : "Gratuita"}
+                      </span>
+                    )}
                   </div>
                   <p className="mono text-sm mt-1">
-                    {item.consumed.toLocaleString("es-GT")}{" "}
-                    <span className="muted text-xs">
-                      de {item.limit.toLocaleString("es-GT")} tokens
-                    </span>
+                    {item.tokenRecords
+                      ? `${item.consumed.toLocaleString("es-GT")} tokens consumidos`
+                      : "Sin consumo de tokens registrado"}
+                    {item.limit !== undefined && (
+                      <span className="muted text-xs"> · límite {item.limit.toLocaleString("es-GT")}</span>
+                    )}
                   </p>
-                  <div className="bar">
-                    <i
-                      style={{
-                        width: `${pct}%`,
-                        background: item.paid ? "var(--warn)" : "var(--primary)",
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-[var(--ink-3)] mt-1 font-mono">
-                    <span>{pct}% usado</span>
-                    <span>Costo: {item.paid ? `$${item.cost.toFixed(2)}` : "$0.00"}</span>
-                  </div>
+                  {pct !== null && (
+                    <>
+                      <div className="bar">
+                        <i
+                          style={{
+                            width: `${pct}%`,
+                            background: item.paid ? "var(--warn)" : "var(--primary)",
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-[var(--ink-3)] mt-1 font-mono">
+                        <span>{pct}% usado</span>
+                      </div>
+                    </>
+                  )}
+                  <p className="muted text-xs mt-1">
+                    {item.costRecords ? `Costo registrado: $${item.cost.toFixed(2)}` : "Costo no registrado"}
+                  </p>
                 </div>
               );
             })}
@@ -314,8 +390,8 @@ export function AdminDashboard() {
           <table>
             <thead>
               <tr>
-                <th>Referencia</th>
-                <th>Cliente / ID</th>
+                <th>Número DUCA</th>
+                <th>Usuario</th>
                 <th>Fecha</th>
                 <th>Estado</th>
               </tr>
@@ -331,13 +407,13 @@ export function AdminDashboard() {
                 cases.slice(0, 5).map((c) => (
                   <tr key={c.id}>
                     <td className="mono font-semibold text-xs text-[var(--primary-ink)]">
-                      {c.reference || c.id}
+                      {ducaReference(c)}
                     </td>
-                    <td>{c.cliente || "Agencia Aduanal del Norte"}</td>
+                    <td>{usersById.get(c.userId || "") || "Usuario"}</td>
                     <td className="muted whitespace-nowrap text-xs">
                       {c.createdAt
                         ? new Date(c.createdAt).toLocaleString("es-GT")
-                        : "Hoy"}
+                        : "—"}
                     </td>
                     <td>{statusBadge(c.status)}</td>
                   </tr>

@@ -1,40 +1,65 @@
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import {
+  consumeOAuthState,
+  getGmailConnection,
+  reserveGmailAddress,
+  saveGmailConnection,
+} from "@/lib/gmail-user";
 
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GMAIL_CLIENT_ID,
-  process.env.GMAIL_CLIENT_SECRET,
-  process.env.GMAIL_REDIRECT_URI,
-);
+function dashboardRedirect(request: Request, result: string) {
+  const destination = new URL("/dashboard", request.url);
+  destination.searchParams.set("gmail", result);
+  return NextResponse.redirect(destination);
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state") || "";
+  const uid = consumeOAuthState(state);
+  if (!uid) return dashboardRedirect(request, "invalid-state");
+  if (url.searchParams.has("error")) return dashboardRedirect(request, "cancelled");
 
-  if (!code) {
-    return NextResponse.json(
-      { error: "No se encontró el código de autorización" },
-      { status: 400 },
-    );
-  }
+  const code = url.searchParams.get("code");
+  if (!code) return dashboardRedirect(request, "error");
 
   try {
-    const { tokens } = await oauth2Client.getToken(code);
-
-    // Guardamos los tokens en un archivo temporal seguro para el MVP
-    const tokenPath = path.join(process.cwd(), "tmp", "gmail_tokens.json");
-    fs.mkdirSync(path.dirname(tokenPath), { recursive: true });
-    fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
-
-    // Redirige de vuelta al panel principal de tu app
-    return NextResponse.redirect(new URL("/", request.url));
-  } catch (error) {
-    console.error("Error detallado en callback de Gmail:", error); // <-- Usamos la variable
-    return NextResponse.json(
-      { error: "Error al autenticar con Gmail" },
-      { status: 500 },
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GMAIL_CLIENT_ID,
+      process.env.GMAIL_CLIENT_SECRET,
+      process.env.GMAIL_REDIRECT_URI,
     );
+    const existing = getGmailConnection(uid);
+    const { tokens } = await oauth2Client.getToken(code);
+    if (!tokens.refresh_token && !existing) {
+      return dashboardRedirect(request, "retry-consent");
+    }
+    oauth2Client.setCredentials({ ...existing?.tokens, ...tokens });
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+    const profile = await gmail.users.getProfile({ userId: "me" });
+    const email = profile.data.emailAddress?.trim().toLowerCase();
+    if (!email) return dashboardRedirect(request, "error");
+
+    if (existing && existing.email !== email) {
+      return dashboardRedirect(request, "already-linked");
+    }
+
+    reserveGmailAddress(uid, email);
+    saveGmailConnection({
+      uid,
+      email,
+      tokens: { ...existing?.tokens, ...tokens },
+      linkedAt: existing?.linkedAt || new Date().toISOString(),
+    });
+    return dashboardRedirect(request, "connected");
+  } catch (error) {
+    console.error("Error al autenticar con Gmail:", error);
+    if (
+      error instanceof Error &&
+      error.message === "Esta cuenta de Gmail ya está vinculada a otro usuario."
+    ) {
+      return dashboardRedirect(request, "already-linked");
+    }
+    return dashboardRedirect(request, "error");
   }
 }

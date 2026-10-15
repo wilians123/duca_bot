@@ -1,0 +1,514 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duca-t.local/contrato.schema.json",
+  "title": "DucaTForm",
+  "type": "object",
+  "properties": {
+    "hasDiscrepancies": {
+      "type": "boolean"
+    },
+    "discrepancyDetails": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "paso1": {
+      "type": "object",
+      "properties": {
+        "PaisProcedencia": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "AduanaInicio": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "PaisDestino": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "AduanaDestino": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Observaciones": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      },
+      "required": [
+        "PaisProcedencia",
+        "AduanaInicio",
+        "PaisDestino",
+        "AduanaDestino",
+        "Observaciones"
+      ],
+      "additionalProperties": false
+    },
+    "paso2": {
+      "type": "object",
+      "properties": {
+        "NombreExportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "DomicilioExportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "TipoIdentificacionExportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "NumeroIdentificacionExportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "PaisExportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      },
+      "required": [
+        "NombreExportador",
+        "DomicilioExportador",
+        "TipoIdentificacionExportador",
+        "NumeroIdentificacionExportador",
+        "PaisExportador"
+      ],
+      "additionalProperties": false
+    },
+    "paso3": {
+      "type": "object",
+      "properties": {
+        "NombreImportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "DomicilioImportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "TipoIdentificacionImportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "NumeroIdentificacionImportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "PaisImportador": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      },
+      "required": [
+        "NombreImportador",
+        "DomicilioImportador",
+        "TipoIdentificacionImportador",
+        "NumeroIdentificacionImportador",
+        "PaisImportador"
+      ],
+      "additionalProperties": false
+    },
+    "paso4": {
+      "type": "object",
+      "properties": {
+        "AduanaPaso": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      },
+      "required": [
+        "AduanaPaso"
+      ],
+      "additionalProperties": false
+    },
+    "paso5": {
+      "type": "object",
+      "properties": {
+        "CodigoTransportista": {
+          "type": [
+            "null"
+          ]
+        },
+        "PlacaTransporte": {
+          "type": [
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "CodigoTransportista",
+        "PlacaTransporte"
+      ],
+      "additionalProperties": false
+    },
+    "paso6": {
+      "type": "object",
+      "properties": {
+        "LicenciaConductor": {
+          "type": [
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "LicenciaConductor"
+      ],
+      "additionalProperties": false
+    },
+    "paso7": {
+      "type": "object",
+      "properties": {
+        "gastos": {
+          "type": "object",
+          "properties": {
+            "ValorFOB": {
+              "type": [
+                "null",
+                "number",
+                "string"
+              ]
+            },
+            "GastosTransporte": {
+              "type": [
+                "null",
+                "number",
+                "string"
+              ]
+            },
+            "GastosSeguro": {
+              "type": [
+                "null",
+                "number",
+                "string"
+              ]
+            },
+            "OtrosGastos": {
+              "type": [
+                "null",
+                "number",
+                "string"
+              ]
+            },
+            "ValorTotal": {
+              "type": [
+                "null",
+                "number",
+                "string"
+              ]
+            }
+          },
+          "required": [
+            "ValorFOB",
+            "GastosTransporte",
+            "GastosSeguro",
+            "OtrosGastos",
+            "ValorTotal"
+          ],
+          "additionalProperties": false
+        },
+        "mercancias": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "PartidaArancelaria": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "DescripcionMercancia": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "CantidadMercancia": {
+                "type": [
+                  "null",
+                  "number",
+                  "string"
+                ]
+              },
+              "ClaseMercancia": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "PaisMercancia": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "PesoMercancia": {
+                "type": [
+                  "null",
+                  "number",
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "PartidaArancelaria",
+              "DescripcionMercancia",
+              "CantidadMercancia",
+              "ClaseMercancia",
+              "PaisMercancia",
+              "PesoMercancia"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "gastos",
+        "mercancias"
+      ],
+      "additionalProperties": false
+    },
+    "paso8": {
+      "type": "object",
+      "properties": {
+        "cartaporte": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "NombreDocumentoPorte": {
+                "type": [
+                  "null"
+                ]
+              },
+              "TipoDocumentoPorte": {
+                "type": [
+                  "null"
+                ]
+              },
+              "NumeroDocumentoPorte": {
+                "type": [
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "NombreDocumentoPorte",
+              "TipoDocumentoPorte",
+              "NumeroDocumentoPorte"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "facturas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "NombreDocumentoFactura": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "TipoDocumentoFactura": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "NumeroDocumentoFactura": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "NombreDocumentoFactura",
+              "TipoDocumentoFactura",
+              "NumeroDocumentoFactura"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "manifiestos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "NombreDocumentoManifiesto": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "TipoDocumentoManifiesto": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "NumeroDocumentoManifiesto": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "NombreDocumentoManifiesto",
+              "TipoDocumentoManifiesto",
+              "NumeroDocumentoManifiesto"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "otros": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "NombreDocumentoBL": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "TipoDocumentoManifiestoBL": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "NumeroDocumentoManifiestoBL": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "NombreDocumentoBL",
+              "TipoDocumentoManifiestoBL",
+              "NumeroDocumentoManifiestoBL"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "cartaporte",
+        "facturas",
+        "manifiestos",
+        "otros"
+      ],
+      "additionalProperties": false
+    },
+    "paso9": {
+      "type": "object",
+      "properties": {
+        "TipoEquipamiento": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "TipoCarga": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "PlacaChasis": {
+          "type": [
+            "null"
+          ]
+        },
+        "MarchamoSat": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "TamañoContenedor": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "NumeroContenedor": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "PaisChasis": {
+          "type": [
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "TipoEquipamiento",
+        "TipoCarga",
+        "PlacaChasis",
+        "MarchamoSat",
+        "TamañoContenedor",
+        "NumeroContenedor",
+        "PaisChasis"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "hasDiscrepancies",
+    "discrepancyDetails",
+    "paso1",
+    "paso2",
+    "paso3",
+    "paso4",
+    "paso5",
+    "paso6",
+    "paso7",
+    "paso8",
+    "paso9"
+  ],
+  "additionalProperties": false
+}

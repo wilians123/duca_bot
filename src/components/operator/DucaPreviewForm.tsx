@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { TextField } from "../duca-t/fields/TextField";
-import { TextareaField } from "../duca-t/fields/TextareaField";
+import { TextField } from "./fields/TextField";
+import { TextareaField } from "./fields/TextareaField";
 
 export type DucaScalar = string | number | null | undefined;
 export type DucaValue = DucaScalar | boolean | DucaObject | DucaObject[];
@@ -87,6 +87,7 @@ export interface DucaDataState extends DucaObject {
 interface DucaPreviewFormProps {
   data: DucaDataState;
   onChange: (newData: DucaDataState) => void;
+  onDraftChange?: (datos: DucaDataState, hayCambios: boolean) => void;
   hasDiscrepancies: boolean;
   discrepancyDetails: string | null;
 }
@@ -161,6 +162,7 @@ function WarnIcon() {
 export function DucaPreviewForm({
   data,
   onChange,
+  onDraftChange,
   hasDiscrepancies,
   discrepancyDetails,
 }: DucaPreviewFormProps) {
@@ -190,6 +192,7 @@ export function DucaPreviewForm({
     updatePaso7Total(newData);
     setLocalData(newData);
     setHasUnsavedChanges(true);
+    onDraftChange?.(newData, true);
   };
 
   const handleArrayChange = (
@@ -210,6 +213,7 @@ export function DucaPreviewForm({
     updatePaso7Total(newData);
     setLocalData(newData);
     setHasUnsavedChanges(true);
+    onDraftChange?.(newData, true);
   };
 
   const handleSave = () => {
@@ -218,6 +222,7 @@ export function DucaPreviewForm({
     onChange(newData);
     setLocalData(newData);
     setHasUnsavedChanges(false);
+    onDraftChange?.(newData, false);
   };
 
   const jumpToStep = (e: React.MouseEvent, stepNumber: number) => {
