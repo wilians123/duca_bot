@@ -1,5 +1,31 @@
 # Reporte Fase 3B
 
+## Actualización de cambios y revisión para subida — 17/10/2026
+
+### Cambios actuales
+
+- Al completar **Ya guardé la DUCA**, la pantalla limpia los archivos y el correo seleccionados, los datos extraídos, la previsualización y el estado de automatización para iniciar un trámite nuevo.
+- La selección por correo, la carga local y **Extraer datos** usan tres columnas del mismo ancho. La lista de archivos locales se muestra debajo y no desplaza esos controles; **Agregar archivos** está dentro del campo local.
+- Se quitó el indicador fijo “4” del menú **Trámite nuevo**.
+- Se conservaron este reporte y se retiraron los documentos de fase y el reporte anterior.
+
+### Verificaciones actuales
+
+| Comando | Resultado |
+| --- | --- |
+| `git diff --check` | Sin errores de whitespace. |
+| `npm test` | 3 archivos y 15 pruebas aprobadas. La primera ejecución dio `EPERM` en la carpeta temporal; el reintento con `TEMP` y `TMP` en `./tmp` pasó. |
+| `npm run lint` | Falla en `src/components/admin/UserManagement.tsx:114` por `react-hooks/set-state-in-effect`; ese archivo no está modificado en este diff. |
+| `npx tsc --noEmit` | Falla por tipos generados obsoletos de rutas `/duca-t/...` en `.next/types/validator.ts` y errores `unknown` en `tests/duca-extraction.test.ts`; ninguno de esos archivos forma parte del diff. |
+
+### Revisión del diff para subida
+
+Los cambios de aplicación se limitan a la limpieza del estado tras finalizar la DUCA, la presentación de los controles de selección y la eliminación del badge fijo del menú. No cambian rutas de API, contratos, validaciones de negocio ni configuración. El diff rastreado es acotado y las pruebas unitarias pasan.
+
+`repomix-output.xml` aparece como archivo sin seguimiento y no forma parte de estos cambios. Debe excluirse al preparar la subida, especialmente si se usa `git add .` o `git add -A`.
+
+Este reporte conserva el registro original de la Fase 3B a continuación; sus verificaciones reflejan aquella fase y no sustituyen los resultados actuales de esta actualización.
+
 ## Resumen
 
 Se implementó la validación de campos requeridos, el borrador con confirmación al cerrar la revisión y el envío mediante rutas proxy locales hacia la automatización. Los datos enviados son el `parsedData` guardado; el borrador no guardado no se envía.

@@ -1206,6 +1206,27 @@ export default function Home() {
           "success",
         );
         void saveFlowFiles(profile.uid, []).catch(() => undefined);
+        if (isFinalization) {
+          setLocalFiles([]);
+          setSelectedMailId("");
+          setSelectedAttachmentIndexes({});
+          resetExtractedData();
+          setMissingFields([]);
+          setAutomationId(null);
+          setAutomationState(null);
+          setDucaNumber("");
+          setIsAuthenticating(false);
+          setShowPreview(false);
+          setShowUnsavedDialog(false);
+          setPreviewDraft(null);
+          setHasPreviewDraftChanges(false);
+          setShowArchivosJson(false);
+          lastAutomationStateRef.current = "";
+          historySavedAutomationIds.current.clear();
+          if (localFilesInputRef.current)
+            localFilesInputRef.current.value = "";
+          if (flowStateKey) window.sessionStorage.removeItem(flowStateKey);
+        }
       }
       return true;
     } catch (error) {
@@ -1937,7 +1958,10 @@ export default function Home() {
         </div>
 
         <div className="card-body">
-          <div className="grid-auto items-end">
+          <div
+            className="grid gap-4 items-start"
+            style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}
+          >
             <div className="field">
               <span>Archivos elegidos del correo</span>
               <input
@@ -1964,26 +1988,18 @@ export default function Home() {
 
             <div className="field">
               <span>O sube archivos (PDF, XLS o XLSX; máximo 15)</span>
-              <input
-                className="input"
-                readOnly
-                title={localFiles.map((file) => file.name).join(", ")}
-                value={
-                  localFiles.length > 0
-                    ? localFiles.map((file) => file.name).join(", ")
-                    : "Todavía no has cargado archivos locales"
-                }
-              />
-              <input
-                ref={localFilesInputRef}
-                className="sr-only"
-                type="file"
-                multiple
-                accept="application/pdf,.pdf,.xls,.xlsx"
-                onChange={handleFileChange}
-                aria-label="Seleccionar archivos locales"
-              />
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="relative">
+                <input
+                  className="input"
+                  style={{ paddingRight: "10rem" }}
+                  readOnly
+                  title={localFiles.map((file) => file.name).join(", ")}
+                  value={
+                    localFiles.length > 0
+                      ? localFiles.map((file) => file.name).join(", ")
+                      : "Todavía no has cargado archivos locales"
+                  }
+                />
                 <button
                   type="button"
                   className="btn btn-ghost btn-sm"
@@ -1993,53 +2009,34 @@ export default function Home() {
                     isAuthenticating ||
                     localFiles.length >= 15
                   }
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                  }}
                 >
                   Agregar archivos
                   {localFiles.length > 0 ? ` (${localFiles.length}/15)` : ""}
                 </button>
-                {localFiles.length > 0 && (
-                  <button
-                    type="button"
-                    className="btn btn-quiet btn-sm"
-                    onClick={clearLocalFiles}
-                    disabled={isAuthenticating}
-                  >
-                    Quitar todos
-                  </button>
-                )}
               </div>
-              {localFiles.length > 0 && (
-                <ul
-                  className="mt-2 space-y-1"
-                  aria-label="Archivos locales cargados"
-                >
-                  {localFiles.map((file, index) => (
-                    <li
-                      key={`${file.name}-${file.lastModified}-${index}`}
-                      className="flex items-center justify-between gap-2 text-sm"
-                    >
-                      <span className="min-w-0 truncate" title={file.name}>
-                        {file.name}
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-quiet btn-sm"
-                        onClick={() => removeLocalFile(index)}
-                        disabled={isAuthenticating}
-                      >
-                        Quitar
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <input
+                ref={localFilesInputRef}
+                className="sr-only"
+                type="file"
+                multiple
+                accept="application/pdf,.pdf,.xls,.xlsx"
+                onChange={handleFileChange}
+                aria-label="Seleccionar archivos locales"
+              />
             </div>
 
             <button
               type="button"
               onClick={extractData}
               disabled={!canExtract || isExtracting}
-              className="btn btn-primary"
+              className="btn btn-primary self-start mt-6 w-full"
+              style={{ minHeight: 42 }}
             >
               <SparkIcon />
               <span>
@@ -2051,6 +2048,42 @@ export default function Home() {
               </span>
             </button>
           </div>
+
+          {localFiles.length > 0 && (
+            <div className="mt-3">
+              <button
+                type="button"
+                className="btn btn-quiet btn-sm"
+                onClick={clearLocalFiles}
+                disabled={isAuthenticating}
+              >
+                Quitar todos
+              </button>
+              <ul
+                className="mt-2 space-y-1"
+                aria-label="Archivos locales cargados"
+              >
+                {localFiles.map((file, index) => (
+                  <li
+                    key={`${file.name}-${file.lastModified}-${index}`}
+                    className="flex items-center justify-between gap-2 text-sm"
+                  >
+                    <span className="min-w-0 truncate" title={file.name}>
+                      {file.name}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-quiet btn-sm"
+                      onClick={() => removeLocalFile(index)}
+                      disabled={isAuthenticating}
+                    >
+                      Quitar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {parsedData && (
             <div className="mt-5 space-y-4">

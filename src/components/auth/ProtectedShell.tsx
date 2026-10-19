@@ -151,7 +151,7 @@ export function ProtectedShell({ children }: { children: React.ReactNode }) {
         { href: "/reportes", label: "Reportes", icon: <ChartSvg /> },
       ]
     : [
-        { href: "/dashboard", label: "Trámite nuevo", icon: <InboxSvg />, badge: "4" },
+        { href: "/dashboard", label: "Trámite nuevo", icon: <InboxSvg /> },
         { href: "/historial", label: "Historial de trámites", icon: <HistorySvg /> },
         { href: "/conexiones", label: "Conexiones", icon: <PlugSvg /> },
       ];
